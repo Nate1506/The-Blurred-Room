@@ -136,8 +136,8 @@ namespace BlurredRoom
             if (agent.isOnNavMesh)
             {
                 agent.speed = chaseSpeed;
+                if (state != EnemyState.Chase) agent.ResetPath(); // before isStopped: ResetPath clears isStopped
                 agent.isStopped = state != EnemyState.Chase;
-                if (state != EnemyState.Chase) agent.ResetPath();
             }
             StateChanged?.Invoke(state);
         }

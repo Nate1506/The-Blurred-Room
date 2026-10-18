@@ -60,10 +60,10 @@ namespace BlurredRoom
         {
             if (loaded) return;
             loaded = true;
-            lookSensitivity = PlayerPrefs.GetFloat(KeySensitivity, 1f);
+            lookSensitivity = Mathf.Clamp(PlayerPrefs.GetFloat(KeySensitivity, 1f), 0.1f, 5f);
             invertY = PlayerPrefs.GetInt(KeyInvertY, 0) == 1;
-            masterVolume = PlayerPrefs.GetFloat(KeyVolume, 1f);
-            fieldOfView = PlayerPrefs.GetFloat(KeyFov, 70f);
+            masterVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(KeyVolume, 1f));
+            fieldOfView = Mathf.Clamp(PlayerPrefs.GetFloat(KeyFov, 70f), 50f, 100f);
         }
 
         static void Commit()
