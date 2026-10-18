@@ -1,0 +1,21 @@
+{
+    "name": "BlurredRoom.Sandbox.Editor",
+    "rootNamespace": "BlurredRoom.Sandbox.EditorTools",
+    "references": [
+        "BlurredRoom.Nate",
+        "BlurredRoom.Sandbox",
+        "Unity.AI.Navigation",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
