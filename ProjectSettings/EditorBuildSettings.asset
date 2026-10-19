@@ -8,6 +8,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/ThanYo/Inside.unity
+    guid: a2ea11e2cb301474d9bf68d3d5843799
+  - enabled: 1
+    path: Assets/ThanYo/ThanYo.unity
+    guid: 4b73f7ebae97bc349a77b6a67afba26a
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
