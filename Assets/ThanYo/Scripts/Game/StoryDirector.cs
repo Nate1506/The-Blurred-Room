@@ -1,279 +1,557 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using BlurredRoom;
 using UnityEngine;
 
-// ตัวกำกับเรื่อง 3 คืน: แต่ละคืนมี กลางวัน -> เย็น -> กลางคืน และเป้าหมายบนจอทุกช่วง
-// เก็บความคืบหน้าใน GameState จึงข้ามซีน Inside <-> ThanYo ได้
-// เหตุการณ์กลางคืน (คนมาเคาะ, พิธี) เกิดเฉพาะในซีน Inside (กลางคืนออกนอกตึกไม่ได้อยู่แล้ว)
+// ตัวกำกับเรื่อง The Blurred Room (ตามโน้ตใน Obsidian vault)
+// 1 วัน = กลางวัน (4 แอ็กชัน: สัมภาษณ์/สำรวจ/ถ่ายรูป) -> เย็น (ต่อเบาะแสบนกระดาน + ทำพิธี) -> กลางคืน (มีคนมาเคาะประตู)
+// กลางคืน: ผู้เช่าตัวจริง 2 คน + ตัวปลอม 2 ตัว / คืน
+//   เปิดให้ตัวจริง = ปลอดภัย   ไม่เปิดให้ตัวจริง = ผู้เช่าหาย (กลับมาไม่ได้)
+//   เปิดให้ตัวปลอม = สติ -20  ไม่เปิดให้ตัวปลอม = ปลอดภัย
+// ห้องปลอดภัย: คืน 1 และ 3 = ห้องออฟฟิศ, คืน 2 = ห้องที่พิธีบอก (ต้องรีบวิ่งไปให้ทัน)
+// เช้าวันที่ 4: หาย 0-3 = จบปกติ, 4-5 = Bad End, 6 = ฉากจบลับ   |   สติหมด = หลุดเข้ามิติอดีต (SystemHub)
+// เก็บทุกอย่างใน GameState จึงข้ามซีน Inside <-> ThanYo ได้
 public class StoryDirector : MonoBehaviour
 {
+    public static StoryDirector Instance { get; private set; }
+
     [Header("Inside scene only (leave empty in ThanYo)")]
     public Door caretakerDoor;
-    public Door room305Door;
-    public NeutralNpc tenant;
-    public NeutralNpc mimic;
-    [Tooltip("Ritual steps in room 305, in order: thread, incense, rice")]
-    public RitualPoint[] ritualSteps = new RitualPoint[0];
     public Bounds officeArea = new Bounds(new Vector3(5.2f, 1.3f, 7.9f), new Vector3(5.8f, 2.6f, 3.75f));
+    public FakeVisitor fake;
+    public AnomalyDirector anomalies;
 
-    [Header("Night 3")]
-    public float night3TimeLimit = 300f;
-    public float night3KnockEvery = 50f;
+    [Header("Night pacing")]
+    public Vector2 secondsBetweenVisits = new Vector2(10f, 16f);
+    [Tooltip("หลังเคาะครบ ผู้เล่นมีเวลาตัดสินใจกี่วินาที (ไม่เปิด = ปฏิเสธ)")]
+    public float answerWindow = 15f;
+    [Tooltip("คืนที่ 2: ต้องไปถึงห้องที่พิธีบอกภายในกี่วินาที (เกินแล้วโดนจัมป์สแกร์ทุก 20 วิ)")]
+    public float night2RushSeconds = 75f;
+
+    public enum FakeMode { BadKnock, MissingLineTrace, WrongSignature }
+
+    public class VisitInfo
+    {
+        public TenantInfo tenant;
+        public bool fake;
+        public FakeMode mode;
+        public KnockStyle knock;
+        public bool loud;
+        public string line;
+        public List<string> traces = new List<string>();
+        public Door door;
+    }
+
+    /// <summary>คนที่กำลังเคาะอยู่ตอนนี้ (null = ไม่มี)</summary>
+    public VisitInfo Current { get; private set; }
 
     TimeOfDayManager time;
-    PlayerSanity sanity;
     Transform player;
     bool inside, busy;
     Coroutine nightRoutine;
+    readonly Dictionary<string, TenantNpc> tenants = new Dictionary<string, TenantNpc>();
+    readonly Dictionary<string, Door> doorsByName = new Dictionary<string, Door>();
+    Door nightDoor;
+    Bounds nightArea;
+    bool safeReached;
+    float rushDeadline;
+    int visitsDone, visitsTotal;
     DoorAnswer lastAnswer;
     bool answered;
-    readonly List<Light> flicker = new List<Light>();
 
-    // ---------- shortcuts ----------
-    static bool Has(string f) => GameState.Has(f);
-    static void Set(string f) => GameState.Set(f);
-    bool Clue(string id) { foreach (var c in GameState.Clues) if (c && c.Id == id) return true; return false; }
-    static bool Item(string id) => GameState.Items.Contains(id);
-    bool InOffice => inside && player && officeArea.Contains(player.position);
-    DayPhase Phase => time ? time.Phase : GameState.Phase;
+    DayPhase Phase => DormFX.Phase;
+    static int Night => GameState.Night;
+    bool InOffice => inside && player && officeArea.Contains(player.position + Vector3.up * 0.2f);
+
+    void Awake() => Instance = this;
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+        RitualCircle.Completed -= OnRitualDone;
+        if (EndingManager.Instance) EndingManager.Instance.EndingReached -= OnEnding;
+    }
 
     void Start()
     {
         time = TimeOfDayManager.Instance;
-        sanity = FindFirstObjectByType<PlayerSanity>();
-        var pm = FindFirstObjectByType<PlayerMovement>(); if (pm) player = pm.transform;
+        player = DormFX.Player;
         inside = caretakerDoor != null;
-        if (EndingManager.Instance) EndingManager.Instance.EndingReached += (e, r) => GameState.Ended = true;
-        if (inside)
+        foreach (var t in FindObjectsByType<TenantNpc>(FindObjectsInactive.Include, FindObjectsSortMode.None)) tenants[t.tenantId] = t;
+        foreach (var d in FindObjectsByType<Door>(FindObjectsInactive.Include, FindObjectsSortMode.None)) doorsByName[d.name] = d;
+        RitualCircle.Completed += OnRitualDone;
+        if (EndingManager.Instance) EndingManager.Instance.EndingReached += OnEnding;
+
+        if (GameState.RealVisitOrder.Count == 0)
         {
-            caretakerDoor.Answered += OnAnswered;
-            if (room305Door) room305Door.Answered += OnAnswered;
-            foreach (var l in FindObjectsByType<Light>(FindObjectsSortMode.None))
-                if (l.type == LightType.Point && Vector3.Distance(l.transform.position, caretakerDoor.transform.position) < 6f) flicker.Add(l);
-            for (int i = 0; i < ritualSteps.Length; i++) if (ritualSteps[i]) ritualSteps[i].gameObject.SetActive(false);
+            for (int i = 0; i < DormData.Tenants.Length; i++) GameState.RealVisitOrder.Add(i);
+            DormFX.Shuffle(GameState.RealVisitOrder);
         }
         StartCoroutine(IntroIfNeeded());
     }
 
-    void OnAnswered(NpcBase npc, DoorAnswer a) { lastAnswer = a; answered = true; }
-
-    IEnumerator IntroIfNeeded()
-    {
-        yield return new WaitForSeconds(1.2f);
-        string key = "intro_n" + GameState.Night + "_" + Phase;
-        if (Has(key)) yield break;
-        Set(key);
-        Msg(IntroText(), 6f);
-    }
-
-    string IntroText()
-    {
-        int n = GameState.Night;
-        switch (Phase)
-        {
-            case DayPhase.Day:
-                if (n == 1) return "Day 1. You are the new caretaker of this building.";
-                if (n == 2) return "Day 2. Mali from room 204 never came down this morning.";
-                return "Day 3. Two more tenants are gone. It has to end tonight.";
-            case DayPhase.Eve: return "Evening. Be back in your room before dark.";
-            default: return n == 3 ? "Night 3. Break the ritual before it takes the building." : "Night " + n + ". House rule: never open the door after dark.";
-        }
-    }
-
-    // ---------- main loop: objectives + phase changes ----------
+    // =====================================================================
+    //  main loop: objectives + phase changes
+    // =====================================================================
     void Update()
     {
         if (GameState.Ended || busy) return;
         var list = new List<(string, bool)>();
-        int n = GameState.Night;
-        string header = "Night " + n + "  -  " + (Phase == DayPhase.Day ? "Day" : Phase == DayPhase.Eve ? "Evening" : "Night");
+        string phaseName = Phase == DayPhase.Day ? "กลางวัน" : Phase == DayPhase.Eve ? "ตอนเย็น" : "กลางคืน";
+        string header = "วันที่ " + Night + "/3 · " + phaseName + "      ผู้เช่าหาย " + GameState.Missing.Count + "/6";
+
+        if (!inside)
+        {
+            list.Add(("กลับเข้าไปในตึก", false));
+            Hud(header, list);
+            return;
+        }
 
         if (Phase == DayPhase.Day)
         {
-            if (n == 1) list.Add(("Read the tenant register (lobby counter)", Clue("register")));
-            if (n == 2) { list.Add(("Check room 204 (2nd floor)", Clue("photo_305"))); list.Add(("Find the old caretaker's logbook (B1 door, lobby)", Clue("logbook"))); }
-            if (n == 3) { list.Add(("Find the sacred thread (2nd floor storage)", Item("thread"))); list.Add(("Find incense (3rd floor WC)", Item("incense"))); list.Add(("Find rice (laundry, ground floor)", Item("rice"))); }
-            if (AllDone(list)) StartCoroutine(ChangePhase(DayPhase.Eve));
+            int used = GameState.ActionsUsed;
+            list.Add(("ใช้แอ็กชันวันนี้ " + used + "/" + DormData.ActionsPerDay + " — สัมภาษณ์ผู้เช่า / สำรวจ / ถ่ายรูป", used >= DormData.ActionsPerDay));
+            list.Add(("(ไม่บังคับ) ดูรูปพี่บิ๊กเหนือหิ้งเทียนในล็อบบี้ +สติ", GameState.Has(StaffPhoto.FlagToday)));
+            Hud(header, list);
+            if (used >= DormData.ActionsPerDay) StartCoroutine(ToEvening());
         }
         else if (Phase == DayPhase.Eve)
         {
-            bool needKey = n == 2;
-            if (needKey) list.Add(("Take the key to room 305 (desk in your room)", Item("key_305")));
-            list.Add(("Get back to your room (OFFICE) before dark", InOffice && (!needKey || Item("key_305"))));
-            if (!inside) list.Add(("(the building entrance is behind you)", false));
-            if (AllDone(list)) StartCoroutine(ChangePhase(DayPhase.Night));
-        }
-        else // night
-        {
-            if (n == 1) { list.Add(("Stay in your room", InOffice)); list.Add(("Someone may knock. Look first. [Q]", Has("n1_done"))); }
-            if (n == 2) { list.Add(("Check room 305 (3rd floor)", Clue("ritual_order"))); list.Add(("Get back to your room", Has("n2_back"))); }
-            if (n == 3)
+            bool board = GameState.Has("board_n" + Night), rit = GameState.Has("ritual_n" + Night);
+            var inv = DormFX.Inventory;
+            list.Add(("ต่อเบาะแสบนกระดาน (ห้องออฟฟิศ)", board));
+            list.Add(("หาธูป (บนเคาน์เตอร์ล็อบบี้)", rit || (inv && inv.Has(DormData.Incense))));
+            list.Add(("หาชอล์ก (ห้องซักผ้า ชั้น 1)", rit || (inv && inv.Has(DormData.Chalk))));
+            list.Add(("ทำพิธีที่ห้องเก็บของ ชั้น 3 — ค้าง [R] 3 รอบ", rit));
+            if (Night != 2)
             {
-                list.Add(("Room 305: tie the sacred thread [R]", Has("r_thread")));
-                list.Add(("Room 305: light the incense [R]", Has("r_incense")));
-                list.Add(("Room 305: scatter the rice [R]", Has("r_rice")));
+                bool home = InOffice && !caretakerDoor.IsOpen;
+                list.Add(("กลับห้องออฟฟิศ แล้วปิดประตูก่อนมืด", board && rit && home));
+                Hud(header, list);
+                if (board && rit && home) StartCoroutine(ChangePhase(DayPhase.Night, 1f));
             }
-            if (inside && nightRoutine == null) nightRoutine = StartCoroutine(n == 1 ? Night1() : n == 2 ? Night2() : Night3());
+            else Hud(header, list);
         }
+        else
+        {
+            NightObjectives(list);
+            Hud(header, list);
+            if (nightRoutine == null) nightRoutine = StartCoroutine(NightRoutine());
+        }
+    }
+
+    void NightObjectives(List<(string, bool)> list)
+    {
+        bool office = !nightDoor || nightDoor == caretakerDoor;
+        string where = office ? "ห้องออฟฟิศ" : "ห้อง " + GameState.Night2Room;
+        list.Add(("อยู่ใน" + where + " แล้วปิดประตู", safeReached));
+        list.Add(("มีคนเคาะ: ฟังจังหวะ แล้วค้าง [Q] ส่องตาแมวก่อนตัดสินใจ", visitsTotal > 0 && visitsDone >= visitsTotal));
+        if (office) list.Add(("(ไม่บังคับ) ดูกล้องวงจรปิดที่โต๊ะ หาความผิดปกติ", GameState.Has("cctv_seen_n" + Night)));
+        list.Add(("รอดจนถึงเช้า (" + visitsDone + "/" + Mathf.Max(visitsTotal, 4) + ")", false));
+
+        if (Night == 2 && !safeReached && rushDeadline > 0f)
+            DormOverlay.I.SetAlert("ไปห้อง " + GameState.Night2Room + " เดี๋ยวนี้!  " + Mathf.Max(0, Mathf.CeilToInt(rushDeadline - Time.time)) + " วิ");
+    }
+
+    static void Hud(string header, List<(string, bool)> list)
+    {
         if (GameHUD.Instance) GameHUD.Instance.SetObjectives(header, list);
     }
 
-    static bool AllDone(List<(string, bool)> l) { foreach (var o in l) if (!o.Item2) return false; return l.Count > 0; }
+    // =====================================================================
+    //  phases
+    // =====================================================================
+    IEnumerator IntroIfNeeded()
+    {
+        yield return new WaitForSeconds(1.2f);
+        string key = "intro_n" + Night + "_" + Phase;
+        if (GameState.Has(key) || GameState.Ended) yield break;
+        GameState.Set(key);
+        DormFX.Msg(IntroText(), 7f);
+    }
 
-    IEnumerator ChangePhase(DayPhase next)
+    string IntroText()
+    {
+        if (!inside) return "สุขนิรันดร์ แมนชั่น";
+        int n = Night;
+        switch (Phase)
+        {
+            case DayPhase.Day:
+                if (n == 1) return "วันแรกในฐานะผู้ดูแล 'สุขนิรันดร์ แมนชั่น'\nทำความรู้จักผู้เช่า สำรวจตึก — วันละ 4 แอ็กชัน";
+                if (n == 2) return "วันที่ 2... จำร่องรอยของผู้เช่าแต่ละคนไว้ให้ดี";
+                return "วันสุดท้าย... ถ้ารอดคืนนี้ได้ ทุกอย่างจะจบ";
+            case DayPhase.Eve:
+                return "ตกเย็นแล้ว ต่อเบาะแสที่กระดาน แล้วไปทำพิธีที่ห้องเก็บของชั้นสาม";
+            default:
+                if (n == 2) return "ไปที่ห้อง " + GameState.Night2Room + " เดี๋ยวนี้!";
+                if (n == 3) return "คืนสุดท้าย... อย่าเปิดประตูให้สิ่งที่ไม่ใช่คน";
+                return "กฎของหอ: มีคนมาเคาะ ต้องฟังจังหวะ แล้วส่องตาแมวก่อนเปิดทุกครั้ง";
+        }
+    }
+
+    IEnumerator ToEvening()
     {
         busy = true;
-        yield return new WaitForSeconds(1f);
-        if (GameHUD.Instance) yield return GameHUD.Instance.FadeTo(1f, 1f);
-        if (time) time.SetPhase(next); else GameState.Phase = next;
-        yield return new WaitForSeconds(0.5f);
-        if (GameHUD.Instance) yield return GameHUD.Instance.FadeTo(0f, 1.2f);
+        yield return new WaitForSeconds(2f);
+        while (DormFX.UIBusy) yield return null;
+        DormFX.Msg("หมดแรงแล้ว... ตะวันเริ่มตก", 3f);
+        yield return ChangePhaseRoutine(DayPhase.Eve, 1f);
         busy = false;
         StartCoroutine(IntroIfNeeded());
+    }
+
+    IEnumerator ChangePhase(DayPhase next, float fade)
+    {
+        busy = true;
+        yield return ChangePhaseRoutine(next, fade);
+        busy = false;
+        StartCoroutine(IntroIfNeeded());
+    }
+
+    IEnumerator ChangePhaseRoutine(DayPhase next, float fade)
+    {
+        yield return new WaitForSeconds(0.6f);
+        if (GameHUD.Instance) yield return GameHUD.Instance.FadeTo(1f, fade);
+        if (time) time.SetPhase(next); else GameState.Phase = next;
+        GameState.Phase = next;
+        yield return new WaitForSeconds(0.4f);
+        if (GameHUD.Instance) yield return GameHUD.Instance.FadeTo(0f, fade * 1.2f);
+    }
+
+    void OnRitualDone() => StartCoroutine(AfterRitual());
+
+    IEnumerator AfterRitual()
+    {
+        busy = true;
+        int n = Night;
+        string text;
+        if (n == 2)
+        {
+            GameState.Night2Room = DormData.Night2Rooms[Random.Range(0, DormData.Night2Rooms.Length)];
+            Door d = RoomDoor(GameState.Night2Room);
+            if (d) d.SetLocked(false);
+            text = string.Format(DormData.Flashbacks[1], GameState.Night2Room);
+        }
+        else text = DormData.Flashbacks[n == 1 ? 0 : 2];
+
+        yield return DormOverlay.I.Flashback(text, 5f);
+        if (n == 1) DormFX.Discover("c_flash1");
+        if (n == 3) DormFX.Discover("c_flash3");
+        yield return null;
+        while (DormFX.UIBusy) yield return null;
+
+        if (n == 2)
+        {
+            // "ตัดไปตอนค่ำเลย" แล้วต้องรีบไปหาห้องที่พิธีบอก
+            yield return ChangePhaseRoutine(DayPhase.Night, 0.5f);
+            rushDeadline = Time.time + night2RushSeconds;
+            busy = false;
+            StartCoroutine(IntroIfNeeded());
+            yield break;
+        }
+        DormFX.Msg("กลับห้องออฟฟิศ แล้วปิดประตูก่อนมืด", 4f);
+        busy = false;
+    }
+
+    // =====================================================================
+    //  night
+    // =====================================================================
+    IEnumerator NightRoutine()
+    {
+        int n = Night;
+        nightDoor = n == 2 ? RoomDoor(GameState.Night2Room) : caretakerDoor;
+        if (!nightDoor) nightDoor = caretakerDoor;
+        if (nightDoor != caretakerDoor) nightDoor.SetLocked(false);
+        nightArea = nightDoor == caretakerDoor ? officeArea : RoomArea(nightDoor);
+        if (n == 2 && rushDeadline <= 0f) rushDeadline = Time.time + night2RushSeconds;   // เผื่อโหลดซีนกลับมากลางคืน
+        safeReached = false; visitsDone = 0; visitsTotal = 0;
+        if (anomalies) anomalies.BeginNight(n, nightDoor == caretakerDoor);
+
+        // 1) ไปให้ถึงห้องปลอดภัย แล้วปิดประตู
+        float nextScare = 0f;
+        while (!(player && nightArea.Contains(player.position + Vector3.up * 0.2f) && !nightDoor.IsOpen))
+        {
+            if (GameState.Ended) yield break;
+            if (n == 2 && Time.time > rushDeadline && Time.time > nextScare)
+            {
+                nextScare = Time.time + 20f;
+                DormFX.Msg("ช้าเกินไป...", 2f);
+                yield return DormOverlay.I.JumpScare(DormData.JumpScareSanity);
+            }
+            yield return null;
+        }
+        safeReached = true;
+        DormOverlay.I.SetAlert("");
+
+        if (n == 1 && !GameState.Has("rules_read"))
+        {
+            GameState.Set("rules_read");
+            yield return new WaitForSeconds(1.5f);
+            yield return DormOverlay.I.ShowDocument("กฎของหอ: ประตูตอนกลางคืน", KnockRules.RulesText);
+        }
+
+        // 2) คนมาเคาะ
+        var plan = PlanVisits(n);
+        visitsTotal = plan.Count;
+        foreach (var v in plan)
+        {
+            yield return new WaitForSeconds(Random.Range(secondsBetweenVisits.x, secondsBetweenVisits.y));
+            while (nightDoor.IsOpen || DormFX.UIBusy) yield return null;
+            if (GameState.Ended) yield break;
+            yield return RunVisit(v);
+            visitsDone++;
+            if (GameState.Ended) yield break;
+        }
+
+        // 3) เช้า
+        yield return new WaitForSeconds(6f);
+        if (anomalies) anomalies.EndNight();
+        rushDeadline = 0f;
+        if (n >= 3) Dawn();
+        else yield return NextMorning();
+        nightRoutine = null;
+    }
+
+    List<VisitInfo> PlanVisits(int n)
+    {
+        var plan = new List<VisitInfo>();
+        var reals = new List<TenantInfo>();
+        for (int k = 0; k < 2; k++)
+        {
+            int idx = (n - 1) * 2 + k;
+            if (idx < GameState.RealVisitOrder.Count) reals.Add(DormData.Tenants[GameState.RealVisitOrder[idx]]);
+        }
+        foreach (var t in reals)
+            plan.Add(GameState.Missing.Contains(t.id) ? MakeFake(t, RandomMode()) : MakeReal(t));   // คนที่หายแล้วมาเคาะ = ของปลอมแน่นอน
+
+        var used = new List<TenantInfo>(reals);
+        for (int k = 0; k < 2; k++)
+        {
+            var t = PickFakeTarget(n, used);
+            used.Add(t);
+            plan.Add(MakeFake(t, RandomMode()));
+        }
+
+        if (n == 1 && plan.Count == 4)
+        {
+            // คืนแรกสอนเล่น: ตัวจริงมาก่อน แล้วตามด้วยตัวปลอมที่เคาะผิดจังหวะชัดๆ
+            var lesson = MakeFake(plan[2].tenant, FakeMode.BadKnock);
+            plan = new List<VisitInfo> { plan[0], lesson, plan[1], plan[3] };
+        }
+        else DormFX.Shuffle(plan);
+        return plan;
+    }
+
+    TenantInfo PickFakeTarget(int n, List<TenantInfo> exclude)
+    {
+        var missing = new List<TenantInfo>();
+        var pool = new List<TenantInfo>();
+        foreach (var t in DormData.Tenants)
+        {
+            if (exclude.Contains(t)) continue;
+            if (GameState.Missing.Contains(t.id)) missing.Add(t); else pool.Add(t);
+        }
+        if (n >= 2 && missing.Count > 0 && Random.value < 0.5f) return missing[Random.Range(0, missing.Count)];
+        if (pool.Count == 0) pool.AddRange(missing);
+        if (pool.Count == 0) pool.AddRange(DormData.Tenants);
+        return pool[Random.Range(0, pool.Count)];
+    }
+
+    static FakeMode RandomMode() => (FakeMode)Random.Range(0, 3);
+
+    static VisitInfo MakeReal(TenantInfo t)
+    {
+        int li = Random.Range(0, t.doorLines.Length);
+        var v = new VisitInfo { tenant = t, fake = false, knock = KnockRules.RandomNormal(), loud = Random.value < 0.35f, line = t.doorLines[li] };
+        v.traces.AddRange(t.traces);
+        v.traces.Add(t.doorTraces[li]);
+        DormFX.Shuffle(v.traces);
+        return v;
+    }
+
+    static VisitInfo MakeFake(TenantInfo t, FakeMode mode)
+    {
+        int li = Random.Range(0, t.doorLines.Length);
+        var v = new VisitInfo { tenant = t, fake = true, mode = mode, loud = Random.value < 0.5f, line = t.doorLines[li] };
+        v.knock = mode == FakeMode.BadKnock ? KnockRules.RandomAbnormal() : KnockRules.RandomNormal();
+        v.traces.AddRange(t.traces);
+        if (mode == FakeMode.WrongSignature) v.traces[0] = t.decoy;        // ลักษณะประจำตัวผิด
+        if (mode != FakeMode.MissingLineTrace) v.traces.Add(t.doorTraces[li]);   // ของปลอมไม่ทิ้งร่องรอยตามคำพูด
+        DormFX.Shuffle(v.traces);
+        return v;
+    }
+
+    IEnumerator RunVisit(VisitInfo v)
+    {
+        Current = v;
+        v.door = nightDoor;
+        TenantNpc tn = null;
+        NpcBase npc;
+        if (!v.fake && tenants.TryGetValue(v.tenant.id, out tn) && tn)
+        {
+            tn.ShowAtDoor(nightDoor);
+            npc = tn;
+        }
+        else
+        {
+            v.fake = true;
+            tenants.TryGetValue(v.tenant.id, out var look);
+            fake.Disguise(v.tenant, look ? look.model : null);
+            fake.ShowAtDoor(nightDoor);
+            npc = fake;
+        }
+
+        answered = false;
+        nightDoor.Answered += OnAnswered;
+        yield return KnockRules.Perform(nightDoor, npc, v.knock, v.loud, answerWindow,
+            () =>
+            {
+                DormFX.Sub(v.tenant.name + ": " + v.line, 6f);
+                if (tn && !v.fake) tn.PlayTalk(); else fake.PlayTalk();
+            });
+        while (!answered && nightDoor.HasPendingVisitor && !GameState.Ended) yield return null;
+        nightDoor.Answered -= OnAnswered;
+
+        if (!answered)   // เริ่มเคาะไม่ได้ (ประตูเปิดอยู่) -> ข้าม
+        {
+            if (tn && !v.fake) tn.LeaveDoor(); else fake.Hide();
+            Current = null;
+            yield break;
+        }
+
+        string name = v.tenant.name;
+        if (!v.fake)
+        {
+            if (lastAnswer == DoorAnswer.Opened)
+            {
+                DormFX.Sub(name + ": ขอบคุณนะ... คืนนี้ทางเดินมันแปลกๆ", 4f);
+                yield return new WaitForSeconds(3.5f);
+                tn.LeaveDoor();
+                DormFX.Msg(name + " กลับห้องไปอย่างปลอดภัย", 3f);
+            }
+            else
+            {
+                tn.LeaveDoor();
+                GameState.Missing.Add(v.tenant.id);
+                GameState.MissingLog.Add(v.tenant.id);
+                UpdateMissingFlags();
+                DormFX.Msg("เสียงฝีเท้าค่อยๆ เงียบหายไปในทางเดิน...", 4f);
+            }
+        }
+        else
+        {
+            if (lastAnswer == DoorAnswer.Opened)
+            {
+                fake.Reveal();
+                yield return DormOverlay.I.JumpScare(DormData.WrongDoorSanity);
+                fake.Hide();
+                DormFX.Msg("นั่นไม่ใช่" + name + "...  ปิดประตูซะ", 4f);
+            }
+            else
+            {
+                fake.Hide();
+                DormFX.Msg("เสียงเคาะหยุดลง... ทางเดินกลับมาเงียบ", 3.5f);
+            }
+        }
+        Current = null;
+    }
+
+    void OnAnswered(NpcBase npc, DoorAnswer a)
+    {
+        lastAnswer = a;
+        answered = true;
+    }
+
+    /// <summary>ให้ DormOverlay ใช้ตอนผู้เล่นส่องตาแมว</summary>
+    public bool TryPeep(Door door, out Sprite portrait, out string text)
+    {
+        portrait = null; text = null;
+        var v = Current;
+        if (v == null || v.door != door || !door.HasPendingVisitor) return false;
+        portrait = DormFX.Portrait(v.tenant.portrait);
+        var sb = new StringBuilder();
+        sb.Append("<b>ดูเหมือน: ").Append(v.tenant.name).Append(" (ห้อง ").Append(v.tenant.room).Append(")</b>\n");
+        sb.Append("พูดว่า: \"").Append(v.line).Append("\"\n");
+        sb.Append("สิ่งที่เห็น: ").Append(string.Join("  ·  ", v.traces));
+        text = sb.ToString();
+        return true;
     }
 
     IEnumerator NextMorning()
     {
         busy = true;
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
         if (GameHUD.Instance) yield return GameHUD.Instance.FadeTo(1f, 1.5f);
-        Msg("Morning came. Night " + GameState.Night + " survived.", 4f);
-        yield return new WaitForSeconds(3f);
+        DormFX.Msg("รุ่งเช้า... ผ่านคืนที่ " + Night + " มาได้", 3f);
+        yield return new WaitForSeconds(2.5f);
         GameState.Night++;
-        nightRoutine = null;
-        if (time) time.SetPhase(DayPhase.Day); else GameState.Phase = DayPhase.Day;
-        if (GameState.Night == 2) Set("day2");                 // unlocks room 204
+        GameState.ActionsUsed = 0;
+        if (time) time.SetPhase(DayPhase.Day);
+        GameState.Phase = DayPhase.Day;
+        foreach (var t in tenants.Values) if (t) t.Refresh();
         if (GameHUD.Instance) yield return GameHUD.Instance.FadeTo(0f, 1.5f);
         busy = false;
+
+        if (GameState.MissingLog.Count > 0)
+        {
+            var names = new List<string>();
+            foreach (var id in GameState.MissingLog) { var t = DormData.Tenant(id); if (t != null) names.Add(t.name + " ห้อง " + t.room); }
+            GameState.MissingLog.Clear();
+            yield return new WaitForSeconds(1f);
+            DormFX.Msg("เช้านี้... " + string.Join(", ", names) + " ไม่อยู่ในห้องแล้ว\nประตูยังล็อกจากด้านใน", 7f);
+            yield return new WaitForSeconds(7.5f);
+        }
         StartCoroutine(IntroIfNeeded());
     }
 
-    // ---------- nights ----------
-    IEnumerator Night1()
+    void UpdateMissingFlags()
     {
-        while (!InOffice) yield return null;
-        yield return new WaitForSeconds(10f);
-        yield return Visit(caretakerDoor, tenant, true, 0.9f, new KnockPattern { knocks = 3, interval = 0.7f, answerWindow = 15f },
-                           "Mali (204): It's me... from 204. I locked myself out. Please.");
-        if (lastAnswer == DoorAnswer.Opened) { yield return new WaitForSeconds(4f); tenant.SetActiveState(false); Msg("She thanks you and hurries upstairs.", 4f); }
-        else Msg("The footsteps fade down the hall.", 4f);
-
-        yield return new WaitForSeconds(16f);
-        StartCoroutine(Flicker(9f));
-        yield return Visit(caretakerDoor, mimic, false, 0.9f, new KnockPattern { knocks = 4, interval = 0.45f, answerWindow = 15f },
-                           "Mali (204): It's me... from 204. I locked myself out. Please.");
-        yield return MimicConsequence(45f, 6f, "That wasn't her.", "It kept knocking long after it should have stopped.");
-        Set("n1_done");
-        StartCoroutine(NextMorning());
+        int m = GameState.Missing.Count;
+        if (m >= 4) DormFX.SetFlag("missing_4");
+        if (m >= 6) DormFX.SetFlag("missing_6");
     }
 
-    IEnumerator Night2()
+    void Dawn()
     {
-        while (!Clue("ritual_order")) yield return null;               // player went to 305
-        Msg("Go back to your room. Now.", 4f);
-        while (!InOffice) yield return null;
-        Set("n2_back");
-        yield return new WaitForSeconds(8f);
-        StartCoroutine(Flicker(10f));
-        // Mali is missing, so whatever uses her voice is not her. It stands far too close to the door.
-        yield return Visit(caretakerDoor, mimic, true, 0.35f, new KnockPattern { knocks = 5, interval = 0.5f, answerWindow = 18f },
-                           "Mali (204): Please... it's so cold up there. Let me in.");
-        yield return MimicConsequence(50f, 8f, "Mali has been missing since this morning.", "It whispered your name through the door until dawn.");
-        StartCoroutine(NextMorning());
+        UpdateMissingFlags();
+        DormOverlay.I.SetAlert("");
+        if (EndingManager.Instance) EndingManager.Instance.TryEnd("Dawn");
+        GameState.Ended = true;
     }
 
-    IEnumerator Night3()
-    {
-        float start = Time.time;
-        float nextKnock = Time.time + 25f;
-        if (ritualSteps.Length > 0 && ritualSteps[0]) ritualSteps[0].gameObject.SetActive(true);
-        while (true)
-        {
-            // ritual order: enable the next step only after the previous one
-            for (int i = 0; i < ritualSteps.Length; i++)
-                if (ritualSteps[i]) ritualSteps[i].gameObject.SetActive(i == 0 ? !Has("r_thread") : i == 1 ? Has("r_thread") && !Has("r_incense") : Has("r_incense") && !Has("r_rice"));
-
-            if (Has("r_thread") && Has("r_incense") && Has("r_rice"))
-            {
-                Set("ritual_complete");
-                if (ClueManager.Instance) ClueManager.Instance.SetFlag("ritual_complete");
-                yield return new WaitForSeconds(1.5f);
-                End(EndingReasons.Solved);
-                yield break;
-            }
-            if (Time.time - start > night3TimeLimit) { End(EndingReasons.TimeUp); yield break; }
-
-            if (Time.time > nextKnock && room305Door && !room305Door.IsOpen && player && Vector3.Distance(player.position, room305Door.transform.position) < 8f)
-            {
-                StartCoroutine(Flicker(6f));
-                yield return Visit(room305Door, mimic, false, 0.9f, new KnockPattern { knocks = 4, interval = 0.45f, answerWindow = 12f },
-                                   "Mali (204): You found it... open the door.");
-                yield return MimicConsequence(60f, 4f, "It was waiting for you.", "The knocking stops. For now.");
-                nextKnock = Time.time + night3KnockEvery;
-            }
-            yield return null;
-        }
-    }
-
-    // ---------- helpers ----------
-    IEnumerator Visit(Door door, NeutralNpc npc, bool facingDoor, float distance, KnockPattern pattern, string line)
-    {
-        Transform p = door.VisitorStandPoint;
-        Vector3 toDoor = p.forward;
-        Vector3 pos = p.position + toDoor * (0.9f - distance);   // stand point is 0.9 m from the door
-        npc.Appear(pos, facingDoor ? Quaternion.LookRotation(toDoor) : Quaternion.LookRotation(-toDoor));
-        answered = false;
-        void OnKnock(int i, int total) { if (i == 1) { door.Knocked -= OnKnock; Sub(line, 5f); } }
-        door.Knocked += OnKnock;
-        if (!door.BeginVisit(npc, pattern)) { door.Knocked -= OnKnock; npc.SetActiveState(false); yield break; }
-        while (!answered) yield return null;
-    }
-
-    IEnumerator MimicConsequence(float openedLoss, float ignoredLoss, string openedMsg, string ignoredMsg)
-    {
-        if (lastAnswer == DoorAnswer.Opened)
-        {
-            if (sanity) sanity.Drain(openedLoss);
-            SetFlickerLights(false);
-            yield return new WaitForSeconds(0.6f);
-            mimic.SetActiveState(false);
-            yield return new WaitForSeconds(1.2f);
-            SetFlickerLights(true);
-            Msg(openedMsg, 5f);
-        }
-        else
-        {
-            if (sanity) sanity.Drain(ignoredLoss);
-            Msg(ignoredMsg, 5f);
-        }
-    }
-
-    IEnumerator Flicker(float seconds)
-    {
-        var lights = new List<Light>(flicker);
-        if (room305Door && GameState.Night == 3)
-            foreach (var l in FindObjectsByType<Light>(FindObjectsSortMode.None))
-                if (l.type == LightType.Point && Vector3.Distance(l.transform.position, room305Door.transform.position) < 6f) lights.Add(l);
-        var baseI = new Dictionary<Light, float>();
-        foreach (var l in lights) baseI[l] = l.intensity;
-        float end = Time.time + seconds;
-        while (Time.time < end)
-        {
-            foreach (var l in lights) if (l) l.intensity = baseI[l] * (Random.value < 0.25f ? Random.Range(0f, 0.3f) : 1f);
-            yield return new WaitForSeconds(Random.Range(0.04f, 0.18f));
-        }
-        foreach (var l in lights) if (l) l.intensity = baseI[l];
-    }
-
-    void SetFlickerLights(bool on) { foreach (var l in flicker) if (l) l.enabled = on; }
-
-    void End(string reason)
+    void OnEnding(EndingData e, string reason)
     {
         GameState.Ended = true;
-        if (EndingManager.Instance) EndingManager.Instance.TryEnd(reason);
+        DormOverlay.I.SetAlert("");
+        if (anomalies) anomalies.EndNight();
+        StartCoroutine(AppendStats(e));
     }
 
-    void Msg(string t, float s) { if (GameHUD.Instance) GameHUD.Instance.ShowMessage(t, s); }
-    void Sub(string t, float s) { if (GameHUD.Instance) GameHUD.Instance.ShowSubtitle(t, s); }
+    IEnumerator AppendStats(EndingData e)
+    {
+        yield return null;   // ให้ GameHUD โชว์หน้าจบก่อน แล้วค่อยเขียนทับพร้อมสถิติ
+        if (GameHUD.Instance)
+            GameHUD.Instance.ShowEnding(e.Title, e.Text + "\n\n<size=24><color=#b0a090>ผู้เช่าที่หายไป " + GameState.Missing.Count +
+                                                     "/6   ·   ความจริงที่ค้นพบ " + GameState.Truths.Count + "/6</color></size>");
+    }
+
+    // =====================================================================
+    //  helpers
+    // =====================================================================
+    Door RoomDoor(string room)
+    {
+        if (string.IsNullOrEmpty(room)) return null;
+        doorsByName.TryGetValue("Door_" + room, out var d);
+        return d;
+    }
+
+    /// <summary>กล่องคร่าวๆ ของห้องหลังประตู (ห้องลึก ~3.6 m เข้าไปทางที่จุดยืนหันหน้า)</summary>
+    static Bounds RoomArea(Door d)
+    {
+        Vector3 f = d.VisitorStandPoint.forward; f.y = 0; f.Normalize();
+        Vector3 c = d.transform.position + f * 2.0f + Vector3.up * 1.3f;
+        Vector3 size = Mathf.Abs(f.z) > Mathf.Abs(f.x) ? new Vector3(2.8f, 2.6f, 3.8f) : new Vector3(3.8f, 2.6f, 2.8f);
+        return new Bounds(c, size);
+    }
 }
