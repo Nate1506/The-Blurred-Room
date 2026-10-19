@@ -14,7 +14,7 @@ public class TimeOfDayControllerEditor : Editor
         EditorGUILayout.LabelField("Time of Day", EditorStyles.boldLabel);
 
         EditorGUILayout.BeginHorizontal();
-        DrawButton(ctrl, TimeOfDay.Morning, "Morning");
+        DrawButton(ctrl, TimeOfDay.Morning, "Day");
         DrawButton(ctrl, TimeOfDay.Evening, "Evening");
         DrawButton(ctrl, TimeOfDay.Night, "Night");
         EditorGUILayout.EndHorizontal();

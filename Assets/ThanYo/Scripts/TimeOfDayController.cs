@@ -5,7 +5,7 @@ using UnityEditor;
 #endif
 
 // ช่วงเวลาที่เลือกได้ใน Inspector
-public enum TimeOfDay { Morning, Evening, Night }
+public enum TimeOfDay { [InspectorName("Day")] Morning, Evening, Night }
 
 // ค่าทั้งหมดของ "หนึ่งช่วงเวลา" เก็บรวมไว้ในก้อนเดียว
 [System.Serializable]
