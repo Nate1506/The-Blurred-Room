@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.ivanmurzak.unity.mcp": "1.2.0",
+    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
     "com.unity.cinemachine": "3.1.7",
     "com.unity.inputsystem": "1.18.0",
     "com.unity.probuilder": "6.0.8",
