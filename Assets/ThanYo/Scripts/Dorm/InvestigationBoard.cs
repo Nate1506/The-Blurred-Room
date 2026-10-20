@@ -70,7 +70,7 @@ public class InvestigationBoard : MonoBehaviour, IInteractable
         {
             sb.Append("- ").Append(t.name).Append(" ห้อง ").Append(t.room).Append(": ");
             if (GameState.Missing.Contains(t.id)) sb.Append("<color=#7a2a1a>หายตัวไปแล้ว</color>");
-            else if (GameState.Interviewed.Contains(t.id)) sb.Append(string.Join(", ", t.traces));
+            else if (GameState.Interviewed.Contains(t.id)) sb.Append("คุยแล้ว");
             else sb.Append("ยังไม่ได้คุย");
             sb.Append('\n');
         }

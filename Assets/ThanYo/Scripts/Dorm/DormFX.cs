@@ -63,8 +63,9 @@ public static class DormFX
         get { var s = Object.FindFirstObjectByType<PlayerSight>(); return s ? s.ViewCamera : Camera.main; }
     }
 
-    public static void Msg(string text, float seconds = 4f) { if (GameHUD.Instance) GameHUD.Instance.ShowMessage(text, seconds); }
-    public static void Sub(string text, float seconds = 4f) { if (GameHUD.Instance) GameHUD.Instance.ShowSubtitle(text, seconds); }
+    // voice = เล่นเสียงพากย์จาก VoiceBank อัตโนมัติ (ดูความยาวเสียงได้ที่ Voice.LastLength)
+    public static void Msg(string text, float seconds = 4f, bool voice = true) { if (GameHUD.Instance) GameHUD.Instance.ShowMessage(text, seconds, voice); }
+    public static void Sub(string text, float seconds = 4f, bool voice = true) { if (GameHUD.Instance) GameHUD.Instance.ShowSubtitle(text, seconds, voice); }
 
     public static bool HasClue(string id) => ClueManager.Instance && ClueManager.Instance.HasClue(id);
     public static void Discover(string id)
@@ -225,38 +226,14 @@ public static class DormFX
 
     static float Noise() => Random.value * 2f - 1f;
 
-    public static AudioClip KnockClip => knock ? knock : (knock = Make("knock", 0.16f, t =>
-        Mathf.Sin(2f * Mathf.PI * 95f * t) * Mathf.Exp(-t * 32f) * 0.9f + Noise() * Mathf.Exp(-t * 70f) * 0.5f));
-
-    public static AudioClip TapClip => tap ? tap : (tap = Make("tap", 0.1f, t =>
-        Mathf.Sin(2f * Mathf.PI * 1400f * t) * Mathf.Exp(-t * 60f) * 0.5f + Noise() * Mathf.Exp(-t * 90f) * 0.3f));
-
-    public static AudioClip ShutterClip => shutter ? shutter : (shutter = Make("shutter", 0.12f, t =>
-        Noise() * (t < 0.02f || (t > 0.07f && t < 0.09f) ? 0.7f : 0.05f)));
-
-    /// <summary>ฝีเท้าบนพรม: ตุบทึบๆ</summary>
-    public static AudioClip FootClip => foot ? foot : (foot = Make("foot", 0.14f, t =>
-    {
-        float n = Noise();
-        return (Mathf.Sin(2f * Mathf.PI * 70f * t) * 0.7f + n * 0.35f) * Mathf.Exp(-t * 38f) * 0.8f;
-    }));
-
-    /// <summary>หัวใจเต้น (ตุบ-ตุบ)</summary>
-    public static AudioClip HeartClip => heart ? heart : (heart = Make("heart", 0.5f, t =>
-    {
-        float a = Mathf.Sin(2f * Mathf.PI * 52f * t) * Mathf.Exp(-t * 28f);
-        float t2 = Mathf.Max(0f, t - 0.18f);
-        float b = t > 0.18f ? Mathf.Sin(2f * Mathf.PI * 46f * t2) * Mathf.Exp(-t2 * 30f) * 0.7f : 0f;
-        return (a + b) * 0.9f;
-    }));
-
-    public static AudioClip StingClip => sting ? sting : (sting = Make("sting", 1.4f, t =>
-    {
-        float env = Mathf.Clamp01(t * 40f) * Mathf.Exp(-t * 2.2f);
-        float screech = Mathf.Sin(2f * Mathf.PI * (900f + 300f * Mathf.Sin(t * 37f)) * t) * 0.45f;
-        float low = Mathf.Sin(2f * Mathf.PI * (70f - 30f * t) * t) * 0.6f;
-        return (screech + low + Noise() * 0.5f) * env;
-    }));
+    // เสียงทั้งหมดมาจาก SoundBank (Resources/SoundBank.asset) — ไม่มีเสียงสังเคราะห์แล้ว
+    public static AudioClip KnockClip => SoundBank.I ? SoundBank.I.knock : null;
+    public static AudioClip KnockHardClip => SoundBank.I ? SoundBank.I.knockHard : null;
+    public static AudioClip TapClip => null;
+    public static AudioClip ShutterClip => null;
+    public static AudioClip FootClip => null;
+    public static AudioClip HeartClip => null;
+    public static AudioClip StingClip => null;
 
     public static void Play(AudioClip clip, Vector3 pos, float volume = 1f)
     {
@@ -275,14 +252,17 @@ public static class DormFX
 
     public static void Knock(Vector3 pos, bool loud)
     {
+        var clip = loud && KnockHardClip ? KnockHardClip : KnockClip;
+        if (!clip) return;
         var go = new GameObject("Knock");
         go.transform.position = pos + Vector3.up * 1.2f;
         var src = go.AddComponent<AudioSource>();
-        src.clip = KnockClip; src.spatialBlend = 0.85f; src.minDistance = 2f; src.maxDistance = 25f;
-        src.volume = loud ? 1f : 0.55f; src.pitch = Random.Range(0.9f, 1.08f);
+        float vol = SoundBank.I ? SoundBank.I.knockVolume : 1f;
+        src.clip = clip; src.spatialBlend = 0.85f; src.minDistance = 2f; src.maxDistance = 25f;
+        src.volume = (loud ? 1f : 0.6f) * vol; src.pitch = Random.Range(0.94f, 1.06f);
         src.Play();
         CameraDynamics.Shake(loud ? 0.22f : 0.07f);
-        Object.Destroy(go, 0.5f);
+        Object.Destroy(go, clip.length + 0.2f);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

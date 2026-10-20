@@ -76,6 +76,7 @@ public class DormOverlay : MonoBehaviour
     // ---------------- peephole ----------------
     void OnPeepStarted(Door door)
     {
+        if (NightVisits.I && NightVisits.I.RealPeephole) { HidePeep(); return; }   // เดโมคืนแรก: เห็นแค่ภาพจริงผ่านตาแมว
         if (StoryDirector.Instance && StoryDirector.Instance.TryPeep(door, out Sprite portrait, out string text))
             ShowPeep(portrait, text);
         else
@@ -175,7 +176,7 @@ public class DormOverlay : MonoBehaviour
         scareImage.sprite = DormFX.Creature;
         scareImage.color = scareImage.sprite ? Color.white : new Color(0.15f, 0, 0);
         scareRoot.SetActive(true);
-        DormFX.Play2D(DormFX.StingClip, 1f);
+        if (SoundBank.I) DormFX.Play2D(SoundBank.I.jumpscare, SoundBank.I.jumpscareVolume);
         CameraDynamics.Shake(1f);
         if (DormFX.Sanity && sanityLoss > 0f) DormFX.Sanity.Drain(sanityLoss);
         var rt = (RectTransform)scareImage.transform;

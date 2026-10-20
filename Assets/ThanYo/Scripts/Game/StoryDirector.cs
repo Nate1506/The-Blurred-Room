@@ -73,8 +73,12 @@ public class StoryDirector : MonoBehaviour
         if (EndingManager.Instance) EndingManager.Instance.EndingReached -= OnEnding;
     }
 
+    NightDemo nightDemo;
+
     void Start()
     {
+        nightDemo = FindFirstObjectByType<NightDemo>();
+        if (nightDemo && nightDemo.autoStart) nightDemo = null;   // เดโมที่เริ่มเองไม่ต้องรอเรา
         time = TimeOfDayManager.Instance;
         player = DormFX.Player;
         inside = caretakerDoor != null;
@@ -135,6 +139,12 @@ public class StoryDirector : MonoBehaviour
         }
         else
         {
+            // คืนแบบใหม่ (เดโมคืนแรก): ส่งต่อให้ NightDemo คุมทั้งหมด
+            if (nightDemo)
+            {
+                if (!nightDemo.Started) nightDemo.StartDemo();
+                return;
+            }
             NightObjectives(list);
             Hud(header, list);
             if (nightRoutine == null) nightRoutine = StartCoroutine(NightRoutine());
@@ -165,6 +175,7 @@ public class StoryDirector : MonoBehaviour
     IEnumerator IntroIfNeeded()
     {
         yield return new WaitForSeconds(1.2f);
+        if (nightDemo && Phase == DayPhase.Night) yield break;
         string key = "intro_n" + Night + "_" + Phase;
         if (GameState.Has(key) || GameState.Ended) yield break;
         GameState.Set(key);
@@ -407,7 +418,9 @@ public class StoryDirector : MonoBehaviour
         yield return KnockRules.Perform(nightDoor, npc, v.knock, v.loud, answerWindow,
             () =>
             {
-                DormFX.Sub(v.tenant.name + ": " + v.line, 6f);
+                // เสียงพากย์ดังจากหน้าประตู (ของปลอมใช้เสียงเวอร์ชันปลอมถ้ามี)
+                float len = Voice.Say(v.tenant.name, v.line, v.fake, nightDoor.VisitorStandPoint.position + Vector3.up * 1.5f);
+                DormFX.Sub(v.tenant.name + ": " + v.line, Mathf.Max(6f, len + 0.4f), false);
                 if (tn && !v.fake) tn.PlayTalk(); else fake.PlayTalk();
             });
         while (!answered && nightDoor.HasPendingVisitor && !GameState.Ended) yield return null;
@@ -426,7 +439,7 @@ public class StoryDirector : MonoBehaviour
             if (lastAnswer == DoorAnswer.Opened)
             {
                 DormFX.Sub(name + ": ขอบคุณนะ... คืนนี้ทางเดินมันแปลกๆ", 4f);
-                yield return new WaitForSeconds(3.5f);
+                yield return new WaitForSeconds(Mathf.Max(3.5f, Voice.LastLength));
                 tn.LeaveDoor();
                 DormFX.Msg(name + " กลับห้องไปอย่างปลอดภัย", 3f);
             }

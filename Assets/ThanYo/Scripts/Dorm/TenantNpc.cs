@@ -125,9 +125,8 @@ public class TenantNpc : NpcBase, IInteractable
                 {
                     PlayTalk();
                     DormFX.Sub(i.name + ": " + line, 3.2f);
-                    yield return new WaitForSeconds(3.4f);
+                    yield return new WaitForSeconds(Mathf.Max(3.4f, Voice.LastLength + 0.3f));   // มีเสียงพากย์ = รอพูดจบ
                 }
-                DormFX.Msg("จำไว้ — " + i.name + ": " + string.Join(", ", i.traces), 7f);
                 yield return new WaitForSeconds(0.5f);
                 DormFX.Discover(i.clueId);
             }
@@ -136,7 +135,7 @@ public class TenantNpc : NpcBase, IInteractable
         {
             PlayTalk();
             DormFX.Sub(i.name + ": " + i.chat, 3.5f);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(Mathf.Max(1f, Voice.LastLength));
         }
 
         talking = false;

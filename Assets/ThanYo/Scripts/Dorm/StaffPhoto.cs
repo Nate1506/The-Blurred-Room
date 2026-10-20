@@ -24,7 +24,12 @@ public class StaffPhoto : MonoBehaviour, IInteractable
 
     public void Interact(GameObject interactor)
     {
-        if (GameState.Has(FlagToday)) { DormFX.Msg("ดูสุดหล่อไปแล้ว", 2.5f); return; }
+        if (GameState.Has(FlagToday))
+        {
+            Voice.Say("ผู้เล่น", "ดูสุดหล่อไปแล้ว");
+            DormFX.Msg("ดูสุดหล่อไปแล้ว", Mathf.Max(2.5f, Voice.LastLength + 0.3f), false);
+            return;
+        }
         StartCoroutine(Show());
     }
 
@@ -33,7 +38,8 @@ public class StaffPhoto : MonoBehaviour, IInteractable
         showing = true;
         DormFX.SetFlag(FlagToday);
         if (DormFX.Sanity) DormFX.Sanity.Restore(DormData.StaffPhotoSanity);
-        DormFX.Msg("วันนี้พี่บิ๊กหล่อจังครับ (+" + DormData.StaffPhotoSanity + " สติ)", 4f);
+        Voice.Say("ผู้เล่น", "วันนี้พี่บิ๊กหล่อจังครับ");
+        DormFX.Msg("วันนี้พี่บิ๊กหล่อจังครับ (+" + DormData.StaffPhotoSanity + " สติ)", Mathf.Max(4f, Voice.LastLength + 0.3f), false);
         yield return DormOverlay.I.ShowStaff(2.5f, photo);
         showing = false;
     }

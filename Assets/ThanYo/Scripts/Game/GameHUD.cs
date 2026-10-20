@@ -193,14 +193,28 @@ public class GameHUD : MonoBehaviour
         return (go, go.GetComponent<CanvasGroup>(), tick, t);
     }
 
-    public void ShowMessage(string text, float seconds = 4f)
+    /// <summary>ข้อความกลางจอ. voice = ลองเล่นเสียงพากย์จาก VoiceBank (ถ้ามีไฟล์)</summary>
+    public void ShowMessage(string text, float seconds = 4f, bool voice = true)
     {
+        var bank = VoiceBank.I;
+        if (voice && bank && bank.voiceMessages)
+        {
+            float len = Voice.SayText(text, Voice.GroupMessage, bank.recordNewMessages);
+            if (len > 0f && bank.extendSubtitle) seconds = Mathf.Max(seconds, len + 0.4f);
+        }
         if (messageRoutine != null) StopCoroutine(messageRoutine);
         messageRoutine = StartCoroutine(Fade(messageGroup, messageText, T(text), seconds));
     }
 
-    public void ShowSubtitle(string text, float seconds = 4f)
+    /// <summary>ซับไตเติล. voice = เล่นเสียงพากย์จาก VoiceBank ให้เอง (ปิดถ้าผู้เรียกเล่นเสียงเองแล้ว)</summary>
+    public void ShowSubtitle(string text, float seconds = 4f, bool voice = true)
     {
+        var bank = VoiceBank.I;
+        if (voice && bank)
+        {
+            float len = Voice.SayText(text, Voice.GroupSubtitle, bank.recordNewSubtitles);
+            if (len > 0f && bank.extendSubtitle) seconds = Mathf.Max(seconds, len + 0.4f);
+        }
         if (subtitleRoutine != null) StopCoroutine(subtitleRoutine);
         subtitleRoutine = StartCoroutine(Fade(subtitleGroup, subtitleText, text, seconds));
     }

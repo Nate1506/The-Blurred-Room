@@ -72,7 +72,7 @@ public static class DormArtImporter
         var bloom = Get<Bloom>();
         bloom.threshold.Override(0.85f); bloom.intensity.Override(0.6f); bloom.scatter.Override(0.75f); bloom.tint.Override(new Color(1f, 0.9f, 0.75f));
         var grain = Get<FilmGrain>();
-        grain.type.Override(FilmGrainLookup.Medium3); grain.intensity.Override(0.3f); grain.response.Override(0.6f);
+        grain.type.Override(FilmGrainLookup.Medium3); grain.intensity.Override(0.04f); grain.response.Override(0.6f);
         var vig = Get<Vignette>();
         vig.intensity.Override(0.42f); vig.smoothness.Override(0.5f);
         var chroma = Get<ChromaticAberration>();

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 816c17f258dbb17428ce65d858b05e74, type: 3}
+  m_Name: SoundBank
+  m_EditorClassIdentifier: Assembly-CSharp::SoundBank
+  knock: {fileID: 8300000, guid: 0750510bb2c875947839d31cc60fa681, type: 3}
+  knockHard: {fileID: 8300000, guid: 1d76fb8fab9488f4c9182243f2d615f4, type: 3}
+  doorOpen: {fileID: 8300000, guid: 06082909ee7a5194290476d501e8f299, type: 3}
+  doorClose: {fileID: 8300000, guid: c12425da7810a88499207278ea968cd4, type: 3}
+  knockVolume: 0.9
+  doorVolume: 0.8
+  walkLoop: {fileID: 8300000, guid: 6c7c5a659adf7114489a1dbe76b14208, type: 3}
+  stairsLoop: {fileID: 8300000, guid: 302e6714d4504bb42a953697ee09f2bb, type: 3}
+  staminaBreath: {fileID: 8300000, guid: ba9e6e3fe66d4f348aacdd44fa751a06, type: 3}
+  walkVolume: 0.45
+  stairsVolume: 0.55
+  breathVolume: 0.7
+  omen: {fileID: 8300000, guid: 7ba3d58c736365e43a4e7382542fa3f1, type: 3}
+  runUpStairs: {fileID: 8300000, guid: c12aa4d230034d5448cf166843d063de, type: 3}
+  scream: {fileID: 8300000, guid: 11316672b9cf1674a81775fb27da537c, type: 3}
+  jumpscare: {fileID: 8300000, guid: e0e7617d690d70a42b6d11e004539c5c, type: 3}
+  jumpscareVolume: 1
+  menuMusic: {fileID: 8300000, guid: f3801216f35fcd64fa4f987d19b45ef5, type: 3}
+  menuMusicVolume: 0.4

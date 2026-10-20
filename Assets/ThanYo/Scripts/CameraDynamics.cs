@@ -5,6 +5,7 @@ using UnityEngine;
 // ทำงานใน LateUpdate จะได้มาหลังระบบเดิน/มองของเนทเสมอ
 //
 // ของเดิม: ส่ายตามก้าว, หายใจตอนยืน, เอียงตอนเดินข้าง, กล้องหน่วงตอนหันเร็ว, ยุบตอนลงพื้น, สั่นแบบถือกล้อง
+// โฟกัส: CameraDynamics.SetFocus(จุด, น้ำหนัก, ซูม) ให้กล้องหันไปมองบางอย่างชั่วคราว (ใช้โดย ArrivalFocus)
 // เพิ่มใหม่: FOV ขยายตอนวิ่ง / หดตอนส่องตาแมว, เสียงฝีเท้าตามจังหวะก้าว, กล้องโคลงตามสติที่เหลือ (+หัวใจเต้น),
 //           กล้องสั่นจากเหตุการณ์ (CameraDynamics.Shake — เคาะดัง, จัมป์สแกร์, ภาพแฟลช)
 [DisallowMultipleComponent]
@@ -52,9 +53,13 @@ public class CameraDynamics : MonoBehaviour
     public float peepholeFov = 48f;
     public float fovSmoothing = 6f;
 
-    [Header("Footsteps (เสียงสร้างจากโค้ด)")]
+    [Header("Footsteps (เสียงจาก SoundBank: walkLoop / stairsLoop)")]
     public bool footsteps = true;
-    [Range(0f, 1f)] public float footstepVolume = 0.35f;
+    [Range(0f, 1f)] public float footstepVolume = 1f;
+    [Tooltip("ความเร็วแนวตั้งที่นับว่ากำลังขึ้น/ลงบันได (เมตร/วินาที)")]
+    [Range(0.05f, 2f)] public float stairsVerticalSpeed = 0.35f;
+    [Tooltip("เสียงเดินเร็วขึ้นตอนวิ่ง (pitch)")]
+    [Range(1f, 1.6f)] public float runPitch = 1.25f;
 
     [Header("Sanity (ยิ่งสติน้อย กล้องยิ่งโคลง)")]
     [Tooltip("ต่ำกว่านี้เริ่มโคลง (0..1)")]
@@ -70,7 +75,17 @@ public class CameraDynamics : MonoBehaviour
     static float trauma;
     /// <summary>สั่นกล้อง: amount 0..1 (0.2 = เคาะดัง, 1 = จัมป์สแกร์)</summary>
     public static void Shake(float amount) => trauma = Mathf.Clamp01(trauma + amount);
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetStatics() => trauma = 0f;
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void ResetStatics() { trauma = 0f; focusWeight = 0f; focusFov = 0f; }
+
+    // ---------- focus (ให้กล้องหันไปมองจุดหนึ่งชั่วคราว เช่น ArrivalFocus) ----------
+    static Vector3 focusPoint;
+    static float focusWeight, focusFov;
+    /// <summary>หันกล้องไปมอง worldPoint: weight 0 = มองตามผู้เล่นปกติ, 1 = มองจุดนั้นเต็มที่. fovOffset = ซูม (ติดลบ = ซูมเข้า)</summary>
+    public static void SetFocus(Vector3 worldPoint, float weight, float fovOffset = 0f)
+    {
+        focusPoint = worldPoint; focusWeight = Mathf.Clamp01(weight); focusFov = fovOffset;
+    }
+    public static void ClearFocus() { focusWeight = 0f; focusFov = 0f; }
 
     Vector3 basePos;
     Quaternion baseRot;
@@ -85,6 +100,36 @@ public class CameraDynamics : MonoBehaviour
     float lastStepSign = 1f;
     float heartTimer;
     float fovPulse;
+
+    AudioSource stepSrc;
+    float stairsBlend, stepVol;
+
+    void UpdateFootsteps(float dt, bool grounded, Vector3 vel, float run01)
+    {
+        var bank = SoundBank.I;
+        if (!footsteps || !bank) { if (stepSrc) stepSrc.Stop(); return; }
+        if (!stepSrc)
+        {
+            stepSrc = gameObject.AddComponent<AudioSource>();
+            stepSrc.loop = true; stepSrc.spatialBlend = 0f; stepSrc.playOnAwake = false;
+        }
+        bool moving = bobBlend > 0.3f;
+        bool onStairs = moving && Mathf.Abs(vel.y) > stairsVerticalSpeed;
+        stairsBlend = Mathf.MoveTowards(stairsBlend, onStairs ? 1f : 0f, dt * 4f);
+        AudioClip want = stairsBlend > 0.5f && bank.stairsLoop ? bank.stairsLoop : bank.walkLoop;
+        float targetVol = moving ? (stairsBlend > 0.5f ? bank.stairsVolume : bank.walkVolume) * footstepVolume : 0f;
+        stepVol = Mathf.MoveTowards(stepVol, targetVol, dt * 3f);
+        if (want && stepSrc.clip != want)
+        {
+            stepSrc.clip = want;
+            stepSrc.time = Random.Range(0f, want.length * 0.8f);   // เริ่มคนละจุด จะได้ไม่ซ้ำ
+            if (stepVol > 0f) stepSrc.Play();
+        }
+        stepSrc.volume = stepVol;
+        stepSrc.pitch = Mathf.Lerp(1f, runPitch, run01);
+        if (stepVol > 0.001f && !stepSrc.isPlaying && stepSrc.clip) stepSrc.Play();
+        else if (stepVol <= 0.001f && stepSrc.isPlaying) stepSrc.Pause();
+    }
 
     Camera cam;
     PlayerSanity sanity;
@@ -132,10 +177,8 @@ public class CameraDynamics : MonoBehaviour
         float bobR = Mathf.Sin(stepPhase) * bobRoll * amp;
 
         // ---- footsteps: ทุกครั้งที่ sin เปลี่ยนเครื่องหมาย = เท้าแตะพื้น ----
-        float sign = Mathf.Sign(Mathf.Sin(stepPhase));
-        if (footsteps && grounded && bobBlend > 0.35f && sign != lastStepSign)
-            DormFX.Play2D(DormFX.FootClip, footstepVolume * Mathf.Lerp(0.6f, 1f, run01), Random.Range(0.85f, 1.1f));
-        lastStepSign = sign;
+        lastStepSign = Mathf.Sign(Mathf.Sin(stepPhase));
+        UpdateFootsteps(dt, grounded, vel, run01);
 
         // ---- breathing when standing still ----
         breathPhase += dt * breathsPerSecond * Mathf.PI * 2f;
@@ -211,12 +254,23 @@ public class CameraDynamics : MonoBehaviour
         transform.localPosition = basePos + posOffset + shakePos;
         transform.localRotation = baseRot * Quaternion.Euler(rotOffset + shakeRot);
 
+        // ---- focus: ผสมมุมกล้องไปหาจุดที่ถูกสั่งให้มอง (ยังมีมือสั่น/สั่นจากเหตุการณ์ซ้อนอยู่) ----
+        if (focusWeight > 0.0001f)
+        {
+            Vector3 dir = focusPoint - transform.position;
+            if (dir.sqrMagnitude > 0.0001f)
+            {
+                Quaternion look = Quaternion.LookRotation(dir, Vector3.up) * Quaternion.Euler(new Vector3(nP, nY, nR) + shakeRot);
+                transform.rotation = Quaternion.Slerp(transform.rotation, look, focusWeight);
+            }
+        }
+
         // ---- FOV ----
         if (cam)
         {
             bool peeping = peephole && peephole.IsViewing;
             float target = peeping ? peepholeFov : GameSettings.FieldOfView + runFovKick * run01 * bobBlend * k;
-            target += fovPulse + trauma * 4f;
+            target += fovPulse + trauma * 4f + focusFov * focusWeight;
             cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, target, 1f - Mathf.Exp(-fovSmoothing * dt));
         }
     }
