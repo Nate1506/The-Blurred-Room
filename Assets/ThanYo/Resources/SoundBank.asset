@@ -29,6 +29,6 @@ MonoBehaviour:
   scream: {fileID: 8300000, guid: 11316672b9cf1674a81775fb27da537c, type: 3}
   jumpscare: {fileID: 8300000, guid: e0e7617d690d70a42b6d11e004539c5c, type: 3}
   jumpscareVolume: 1
-  jumpscareImage: {fileID: 21300000, guid: 5f38afe390e026c4cac3dc0695fbbbdf, type: 3}
+  jumpscareImage: {fileID: 0}
   menuMusic: {fileID: 8300000, guid: f3801216f35fcd64fa4f987d19b45ef5, type: 3}
   menuMusicVolume: 0.4

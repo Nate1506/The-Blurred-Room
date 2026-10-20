@@ -352,6 +352,12 @@ public static class NightDemoBuilder
             line = "ลุงสมพงษ์ ห้อง 101: ลุงเองๆ เปิดหน่อย! ข้างนอกมันมีอะไรเดินตามลุงมา!",
             ignoredFakeText = "เสียงเคาะหยุด... แล้วมีเสียงหัวเราะเบาๆ อยู่หน้าประตู",
             deathText = "ลุงสมพงษ์... ไม่ได้อยู่ที่นี่คืนนี้",
+            // เปิดประตู = จัมป์สแกร์ภาพเต็มจอ แล้วจบเกม
+            jumpscareImage = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/ThanYo/Resources/Dorm/jumpscare_big.png"),
+            jumpscareSeconds = 1.1f,
+            openedEndsGame = true,
+            openedEndingTitle = "นั่นไม่ใช่ลุงสมพงษ์",
+            openedEndingBody = "เช้าวันต่อมา ประตูห้องผู้ดูแลเปิดค้างอยู่\nลุงสมพงษ์ยังนอนหลับอยู่ในห้อง 101... ทั้งคืนไม่ได้ออกไปไหนเลย\n\n<size=24>— ฉากจบ: เปิดประตูผิดคน —</size>",
         },
         FonVisit(),
     };
@@ -372,7 +378,7 @@ public static class NightDemoBuilder
                                    knock = NightVisits.BeatKnock.Hard, knockCount = 8, knockInterval = 0.32f, knockOffset = 0.2f },
         },
         openedVoice = Clip("Voice/sound_4.wav"),
-        jumpscareImage = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/ThanYo/Resources/Dorm/jumpscare_fon.png"),
+        jumpscareImage = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/ThanYo/Resources/Dorm/jumpscare_big.png"),
         jumpscareSeconds = 1.1f,
         openedEndsGame = true,
         openedEndingTitle = "ฝนเข้ามาแล้ว",

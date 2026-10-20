@@ -41,7 +41,7 @@ public static class DormFX
     public static int ActionsLeft => Mathf.Max(0, DormData.ActionsPerDay - GameState.ActionsUsed);
 
     /// <summary>มีหน้าต่างอ่านอะไรอยู่ (เบาะแส / เอกสาร / แฟลช / จัมป์สแกร์) -> ห้ามกด E ใส่ของอื่น</summary>
-    public static bool UIBusy => (GameHUD.Instance && GameHUD.Instance.ReadingClue) || DormOverlay.Busy;
+    public static bool UIBusy => (GameHUD.Instance && GameHUD.Instance.ReadingClue) || DormOverlay.Busy || TenantRegister.IsOpen || HelpOverlay.IsOpen;
 
     static PlayerInputSource input;
     public static PlayerInputSource Input => input ? input : (input = Object.FindFirstObjectByType<PlayerInputSource>());

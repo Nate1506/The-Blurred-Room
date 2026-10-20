@@ -35,7 +35,7 @@ public static class JumpscareImage
         var bank = SoundBank.I;
         if (bank && bank.jumpscare) DormFX.Play2D(bank.jumpscare, bank.jumpscareVolume);
         CameraDynamics.Shake(1f);
-        for (float t = 0f; t < seconds; t += Time.unscaledDeltaTime)
+        for (float t = 0f; t < seconds; t += Mathf.Min(Time.unscaledDeltaTime, 0.05f))   // กันเฟรมกระตุก (โหลดเสียง) ทำให้ภาพหายไปก่อนเห็น
         {
             float k = t / seconds;
             float s = Mathf.Lerp(1.05f, zoomTo, k * k);

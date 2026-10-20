@@ -404,6 +404,60 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7512474869427928877, guid: d95a6c783e91fea4d8096b66eb134ed5, type: 3}
   m_PrefabInstance: {fileID: 35033693}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &44034879
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 44034880}
+  - component: {fileID: 44034881}
+  m_Layer: 0
+  m_Name: Dust_StreetLamp
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &44034880
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 44034879}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -16.7, y: 2.4, z: 21.6}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 559979432}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &44034881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 44034879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef74481bf06499b4697e60f15e698014, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DustMotes
+  areaSize: {x: 6, y: 4, z: 6}
+  amount: 160
+  size: {x: 0.01, y: 0.03}
+  color: {r: 1, g: 0.92, b: 0.78, a: 1}
+  opacity: 0.45
+  additive: 1
+  unlitSource: {fileID: 2100000, guid: b2e5257b55cec1d4f84d8ed483205061, type: 2}
+  turbulence: 0.12
+  rise: 0.01
+  lifetime: {x: 8, y: 16}
 --- !u!1 &44812333
 GameObject:
   m_ObjectHideFlags: 0
@@ -3244,6 +3298,40 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7512474869427928877, guid: d95a6c783e91fea4d8096b66eb134ed5, type: 3}
   m_PrefabInstance: {fileID: 538761010}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &559979431
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 559979432}
+  m_Layer: 0
+  m_Name: BR_Atmos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &559979432
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 559979431}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1558367899}
+  - {fileID: 1698587483}
+  - {fileID: 44034880}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &575050085
 GameObject:
   m_ObjectHideFlags: 0
@@ -7360,6 +7448,170 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &1349011464
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1349011467}
+  - component: {fileID: 1349011466}
+  - component: {fileID: 1349011465}
+  m_Layer: 0
+  m_Name: BR_Guide
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1349011465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1349011464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74152eec40f48b245b62b9cfc93e2756, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HelpOverlay
+  key: 22
+  altKey: 3
+  cornerHint: "[H] \u0E27\u0E34\u0E18\u0E35\u0E40\u0E25\u0E48\u0E19"
+  title: "\u0E27\u0E34\u0E18\u0E35\u0E40\u0E25\u0E48\u0E19"
+  controls: "<b>W A S D</b>  \u0E40\u0E14\u0E34\u0E19\n<b>Shift</b>  \u0E27\u0E34\u0E48\u0E07
+    (\u0E40\u0E2B\u0E19\u0E37\u0E48\u0E2D\u0E22\u0E44\u0E14\u0E49)\n<b>\u0E40\u0E21\u0E32\u0E2A\u0E4C</b> 
+    \u0E21\u0E2D\u0E07\u0E23\u0E2D\u0E1A\u0E15\u0E31\u0E27\n<b>E</b>  \u0E42\u0E15\u0E49\u0E15\u0E2D\u0E1A
+    \xB7 \u0E40\u0E04\u0E32\u0E30\u0E1B\u0E23\u0E30\u0E15\u0E39 \xB7 \u0E40\u0E1B\u0E34\u0E14/\u0E1B\u0E34\u0E14\u0E1B\u0E23\u0E30\u0E15\u0E39
+    \xB7 \u0E04\u0E38\u0E22\n<b>F</b>  \u0E40\u0E01\u0E47\u0E1A\u0E02\u0E2D\u0E07\n<b>\u0E04\u0E49\u0E32\u0E07
+    Q</b>  \u0E2A\u0E48\u0E2D\u0E07\u0E15\u0E32\u0E41\u0E21\u0E27 (\u0E1B\u0E23\u0E30\u0E15\u0E39\u0E17\u0E35\u0E48\u0E21\u0E35\u0E15\u0E32\u0E41\u0E21\u0E27)\n<b>\u0E04\u0E49\u0E32\u0E07
+    R</b>  \u0E17\u0E33\u0E1E\u0E34\u0E18\u0E35\n<b>H / Tab</b>  \u0E40\u0E1B\u0E34\u0E14\u0E2B\u0E19\u0E49\u0E32\u0E19\u0E35\u0E49"
+  howTo: "<b>\u0E01\u0E25\u0E32\u0E07\u0E27\u0E31\u0E19</b> \u2014 \u0E17\u0E33\u0E04\u0E27\u0E32\u0E21\u0E23\u0E39\u0E49\u0E08\u0E31\u0E01\u0E1C\u0E39\u0E49\u0E40\u0E0A\u0E48\u0E32\n1.
+    \u0E14\u0E39 <b>\u0E17\u0E30\u0E40\u0E1A\u0E35\u0E22\u0E19\u0E1C\u0E39\u0E49\u0E40\u0E0A\u0E48\u0E32</b>
+    \u0E1A\u0E19\u0E40\u0E04\u0E32\u0E19\u0E4C\u0E40\u0E15\u0E2D\u0E23\u0E4C\u0E25\u0E47\u0E2D\u0E1A\u0E1A\u0E35\u0E49
+    \u0E27\u0E48\u0E32\u0E2B\u0E49\u0E2D\u0E07\u0E44\u0E2B\u0E19\u0E21\u0E35\u0E04\u0E19\u0E2D\u0E22\u0E39\u0E48\n2.
+    \u0E44\u0E1B <b>\u0E40\u0E04\u0E32\u0E30\u0E1B\u0E23\u0E30\u0E15\u0E39</b> \u0E2B\u0E49\u0E2D\u0E07\u0E19\u0E31\u0E49\u0E19
+    (\u0E01\u0E14 E \u0E17\u0E35\u0E48\u0E1B\u0E23\u0E30\u0E15\u0E39) \u0E1C\u0E39\u0E49\u0E40\u0E0A\u0E48\u0E32\u0E08\u0E30\u0E40\u0E1B\u0E34\u0E14\u0E2D\u0E2D\u0E01\u0E21\u0E32\u0E04\u0E38\u0E22\n3.
+    \u0E08\u0E33 <b>\u0E25\u0E31\u0E01\u0E29\u0E13\u0E30\u0E1B\u0E23\u0E30\u0E08\u0E33\u0E15\u0E31\u0E27</b>
+    \u0E02\u0E2D\u0E07\u0E41\u0E15\u0E48\u0E25\u0E30\u0E04\u0E19\u0E44\u0E27\u0E49
+    \u2014 \u0E01\u0E25\u0E32\u0E07\u0E04\u0E37\u0E19\u0E15\u0E49\u0E2D\u0E07\u0E43\u0E0A\u0E49\n\u0E2A\u0E31\u0E21\u0E20\u0E32\u0E29\u0E13\u0E4C\u0E44\u0E14\u0E49\u0E27\u0E31\u0E19\u0E25\u0E30
+    4 \u0E04\u0E19 (\u0E04\u0E38\u0E22\u0E0B\u0E49\u0E33\u0E1F\u0E23\u0E35)\n\n<b>\u0E2B\u0E49\u0E2D\u0E07\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E02\u0E35\u0E14\u0E41\u0E14\u0E07</b>
+    \u0E43\u0E19\u0E17\u0E30\u0E40\u0E1A\u0E35\u0E22\u0E19 = \u0E04\u0E19\u0E2B\u0E32\u0E22\u0E44\u0E1B\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E1B\u0E23\u0E34\u0E28\u0E19\u0E32...
+    \u0E2D\u0E22\u0E48\u0E32\u0E44\u0E1B\u0E40\u0E04\u0E32\u0E30\n\n<b>\u0E01\u0E25\u0E32\u0E07\u0E04\u0E37\u0E19</b>
+    \u2014 \u0E2D\u0E22\u0E39\u0E48\u0E43\u0E19\u0E2B\u0E49\u0E2D\u0E07 \u0E1B\u0E34\u0E14\u0E1B\u0E23\u0E30\u0E15\u0E39
+    \u0E21\u0E35\u0E04\u0E19\u0E21\u0E32\u0E40\u0E04\u0E32\u0E30\n\u0E1F\u0E31\u0E07\u0E08\u0E31\u0E07\u0E2B\u0E27\u0E30\u0E40\u0E04\u0E32\u0E30
+    + \u0E2A\u0E48\u0E2D\u0E07\u0E15\u0E32\u0E41\u0E21\u0E27 \u0E01\u0E48\u0E2D\u0E19\u0E15\u0E31\u0E14\u0E2A\u0E34\u0E19\u0E43\u0E08\u0E40\u0E1B\u0E34\u0E14"
+  buildingMap: "<b>\u0E0A\u0E31\u0E49\u0E19 1</b>  \u0E25\u0E47\u0E2D\u0E1A\u0E1A\u0E35\u0E49
+    \xB7 \u0E40\u0E04\u0E32\u0E19\u0E4C\u0E40\u0E15\u0E2D\u0E23\u0E4C \xB7 \u0E2B\u0E49\u0E2D\u0E07\u0E2D\u0E2D\u0E1F\u0E1F\u0E34\u0E28
+    \xB7 \u0E2B\u0E49\u0E2D\u0E07\u0E0B\u0E31\u0E01\u0E1C\u0E49\u0E32 \xB7 \u0E2B\u0E49\u0E2D\u0E07
+    101\u2013107\n<b>\u0E0A\u0E31\u0E49\u0E19 2</b>  \u0E2B\u0E49\u0E2D\u0E07 201\u2013212
+    \xB7 \u0E2B\u0E49\u0E2D\u0E07\u0E19\u0E49\u0E33 \xB7 \u0E2B\u0E49\u0E2D\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E02\u0E2D\u0E07\n<b>\u0E0A\u0E31\u0E49\u0E19
+    3</b>  \u0E2B\u0E49\u0E2D\u0E07 301\u2013312 \xB7 \u0E2B\u0E49\u0E2D\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E02\u0E2D\u0E07
+    (\u0E2B\u0E49\u0E2D\u0E07\u0E1E\u0E34\u0E18\u0E35)\n\n\u0E1A\u0E31\u0E19\u0E44\u0E14\u0E2D\u0E22\u0E39\u0E48
+    <b>\u0E2B\u0E31\u0E27\u0E41\u0E25\u0E30\u0E17\u0E49\u0E32\u0E22\u0E17\u0E32\u0E07\u0E40\u0E14\u0E34\u0E19</b>
+    \u0E17\u0E31\u0E49\u0E07\u0E2A\u0E2D\u0E07\u0E1D\u0E31\u0E48\u0E07\n\u0E40\u0E25\u0E02\u0E2B\u0E49\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E41\u0E23\u0E01
+    = \u0E0A\u0E31\u0E49\u0E19 (\u0E40\u0E0A\u0E48\u0E19 203 = \u0E0A\u0E31\u0E49\u0E19
+    2)\n\u0E14\u0E39\u0E1B\u0E49\u0E32\u0E22\u0E1A\u0E19\u0E1C\u0E19\u0E31\u0E07\u0E15\u0E2D\u0E19\u0E02\u0E36\u0E49\u0E19\u0E1A\u0E31\u0E19\u0E44\u0E14\u0E41\u0E15\u0E48\u0E25\u0E30\u0E0A\u0E31\u0E49\u0E19"
+--- !u!114 &1349011466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1349011464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 564a3b587c521b74bb432205c032d92d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialHints
+  enabledHints: 1
+  hints:
+  - id: move
+    when: 0
+    flag: 
+    key: WASD
+    text: "\u0E40\u0E14\u0E34\u0E19  \xB7  <b>Shift</b> \u0E27\u0E34\u0E48\u0E07 
+      \xB7  <b>\u0E40\u0E21\u0E32\u0E2A\u0E4C</b> \u0E21\u0E2D\u0E07  \xB7  <b>H</b>
+      \u0E14\u0E39\u0E27\u0E34\u0E18\u0E35\u0E40\u0E25\u0E48\u0E19\u0E44\u0E14\u0E49\u0E15\u0E25\u0E2D\u0E14"
+    seconds: 7
+    delay: 2.5
+  - id: register
+    when: 1
+    flag: 
+    key: 
+    text: "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E08\u0E32\u0E01 <b>\u0E17\u0E30\u0E40\u0E1A\u0E35\u0E22\u0E19\u0E1C\u0E39\u0E49\u0E40\u0E0A\u0E48\u0E32</b>
+      \u0E1A\u0E19\u0E40\u0E04\u0E32\u0E19\u0E4C\u0E40\u0E15\u0E2D\u0E23\u0E4C\u0E25\u0E47\u0E2D\u0E1A\u0E1A\u0E35\u0E49
+      \u2014 \u0E14\u0E39\u0E27\u0E48\u0E32\u0E2B\u0E49\u0E2D\u0E07\u0E44\u0E2B\u0E19\u0E21\u0E35\u0E04\u0E19\u0E2D\u0E22\u0E39\u0E48"
+    seconds: 7
+    delay: 10
+  - id: register_look
+    when: 2
+    flag: 
+    key: E
+    text: "\u0E2D\u0E48\u0E32\u0E19\u0E17\u0E30\u0E40\u0E1A\u0E35\u0E22\u0E19\u0E1C\u0E39\u0E49\u0E40\u0E0A\u0E48\u0E32"
+    seconds: 4
+    delay: 0.3
+  - id: knock
+    when: 3
+    flag: 
+    key: E
+    text: "\u0E40\u0E04\u0E32\u0E30\u0E1B\u0E23\u0E30\u0E15\u0E39 \u2014 \u0E16\u0E49\u0E32\u0E21\u0E35\u0E04\u0E19\u0E2D\u0E22\u0E39\u0E48
+      \u0E40\u0E02\u0E32\u0E08\u0E30\u0E40\u0E1B\u0E34\u0E14\u0E2D\u0E2D\u0E01\u0E21\u0E32\u0E04\u0E38\u0E22\n\u0E40\u0E25\u0E02\u0E2B\u0E49\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E41\u0E23\u0E01
+      = \u0E0A\u0E31\u0E49\u0E19 (203 = \u0E0A\u0E31\u0E49\u0E19 2)"
+    seconds: 6
+    delay: 0.3
+  - id: tenant
+    when: 4
+    flag: 
+    key: 
+    text: "\u0E1F\u0E31\u0E07\u0E43\u0E2B\u0E49\u0E14\u0E35 \u0E41\u0E25\u0E49\u0E27\u0E08\u0E33
+      <b>\u0E25\u0E31\u0E01\u0E29\u0E13\u0E30\u0E1B\u0E23\u0E30\u0E08\u0E33\u0E15\u0E31\u0E27</b>
+      \u0E02\u0E2D\u0E07\u0E40\u0E02\u0E32\u0E44\u0E27\u0E49 \u2014 \u0E01\u0E25\u0E32\u0E07\u0E04\u0E37\u0E19\u0E15\u0E49\u0E2D\u0E07\u0E43\u0E0A\u0E49\u0E41\u0E22\u0E01\u0E04\u0E19\u0E08\u0E23\u0E34\u0E07\u0E01\u0E31\u0E1A\u0E02\u0E2D\u0E07\u0E1B\u0E25\u0E2D\u0E21"
+    seconds: 6
+    delay: 0.3
+  - id: run
+    when: 9
+    flag: 
+    key: Shift
+    text: "\u0E27\u0E34\u0E48\u0E07\u0E19\u0E32\u0E19\u0E46 \u0E08\u0E30\u0E2B\u0E2D\u0E1A
+      \u2014 \u0E1B\u0E25\u0E48\u0E2D\u0E22\u0E41\u0E25\u0E49\u0E27\u0E04\u0E48\u0E2D\u0E22\u0E46
+      \u0E2B\u0E32\u0E22\u0E40\u0E2B\u0E19\u0E37\u0E48\u0E2D\u0E22"
+    seconds: 4
+    delay: 3
+  - id: eve
+    when: 7
+    flag: 
+    key: 
+    text: "\u0E15\u0E01\u0E40\u0E22\u0E47\u0E19\u0E41\u0E25\u0E49\u0E27 \u0E1C\u0E39\u0E49\u0E40\u0E0A\u0E48\u0E32\u0E44\u0E21\u0E48\u0E40\u0E1B\u0E34\u0E14\u0E1B\u0E23\u0E30\u0E15\u0E39\u0E41\u0E25\u0E49\u0E27
+      \u2014 \u0E17\u0E33\u0E15\u0E32\u0E21\u0E40\u0E1B\u0E49\u0E32\u0E2B\u0E21\u0E32\u0E22\u0E21\u0E38\u0E21\u0E02\u0E27\u0E32\u0E1A\u0E19"
+    seconds: 6
+    delay: 1.5
+  - id: peep
+    when: 6
+    flag: 
+    key: Q
+    text: "\u0E04\u0E49\u0E32\u0E07\u0E44\u0E27\u0E49\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E2A\u0E48\u0E2D\u0E07\u0E15\u0E32\u0E41\u0E21\u0E27
+      \u2014 \u0E14\u0E39\u0E01\u0E48\u0E2D\u0E19\u0E15\u0E31\u0E14\u0E2A\u0E34\u0E19\u0E43\u0E08\u0E40\u0E1B\u0E34\u0E14\u0E17\u0E38\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07"
+    seconds: 6
+    delay: 0.3
+--- !u!4 &1349011467
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1349011464}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1355198420
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8673,6 +8925,70 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7512474869427928877, guid: d95a6c783e91fea4d8096b66eb134ed5, type: 3}
   m_PrefabInstance: {fileID: 1513710033}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1558367898
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1558367899}
+  - component: {fileID: 1558367900}
+  m_Layer: 0
+  m_Name: GroundFog_Yard
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1558367899
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558367898}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -24, y: 0, z: 22}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 559979432}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1558367900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558367898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5e4d820de68c4448ba02908c36f7b2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FogCards
+  textures:
+  - {fileID: 2800000, guid: 65428e8ce875cbf4888dd4d6ee460e3a, type: 3}
+  - {fileID: 2800000, guid: 400da038ba21c0d4fae15b1494698d15, type: 3}
+  areaSize: {x: 50, y: 0.4, z: 46}
+  count: 70
+  widthRange: {x: 6, y: 12}
+  heightRange: {x: 0.9, y: 2}
+  sink: 0.25
+  lit: 1
+  litSource: {fileID: 2100000, guid: 74f5f86979f840a469f93caf24a354fd, type: 2}
+  unlitSource: {fileID: 2100000, guid: b2e5257b55cec1d4f84d8ed483205061, type: 2}
+  matchSceneFog: 1
+  tint: {r: 0.75, g: 0.78, b: 0.82, a: 1}
+  brightness: 0.8
+  opacity: 0.2
+  wind: {x: 0.25, y: 0, z: 0.08}
+  breathePeriod: {x: 8, y: 16}
+  breatheAmount: 0.45
+  fadeNear: 6
+  fadeGone: 1.5
 --- !u!1001 &1577817581
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9263,6 +9579,70 @@ Transform:
   - {fileID: 751160087}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1698587482
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1698587483}
+  - component: {fileID: 1698587484}
+  m_Layer: 0
+  m_Name: Fog_ForestWall
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1698587483
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1698587482}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -24, y: 0, z: 22}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 559979432}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1698587484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1698587482}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5e4d820de68c4448ba02908c36f7b2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FogCards
+  textures:
+  - {fileID: 2800000, guid: 65428e8ce875cbf4888dd4d6ee460e3a, type: 3}
+  - {fileID: 2800000, guid: 400da038ba21c0d4fae15b1494698d15, type: 3}
+  areaSize: {x: 85, y: 0.4, z: 75}
+  count: 30
+  widthRange: {x: 14, y: 24}
+  heightRange: {x: 2.5, y: 5}
+  sink: 0.25
+  lit: 1
+  litSource: {fileID: 2100000, guid: 74f5f86979f840a469f93caf24a354fd, type: 2}
+  unlitSource: {fileID: 2100000, guid: b2e5257b55cec1d4f84d8ed483205061, type: 2}
+  matchSceneFog: 1
+  tint: {r: 0.75, g: 0.78, b: 0.82, a: 1}
+  brightness: 0.85
+  opacity: 0.15
+  wind: {x: 0.15, y: 0, z: 0.05}
+  breathePeriod: {x: 8, y: 16}
+  breatheAmount: 0.45
+  fadeNear: 6
+  fadeGone: 1.5
 --- !u!1001 &1704277847
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12499,3 +12879,5 @@ SceneRoots:
   - {fileID: 1835723433}
   - {fileID: 1657786830}
   - {fileID: 590230290}
+  - {fileID: 559979432}
+  - {fileID: 1349011467}

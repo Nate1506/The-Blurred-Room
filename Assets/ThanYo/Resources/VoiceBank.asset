@@ -101,7 +101,7 @@ MonoBehaviour:
     speaker: "\u0E15\u0E49\u0E19"
     text: "...\u0E15\u0E49\u0E19\u0E04\u0E23\u0E31\u0E1A \u0E2B\u0E49\u0E2D\u0E07
       203"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: b64ad5ca7b64c974f8734b29dee5220a, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1
@@ -116,7 +116,7 @@ MonoBehaviour:
     speaker: "\u0E15\u0E49\u0E19"
     text: "\u0E1C\u0E21\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E04\u0E19\u0E04\u0E38\u0E22\u0E01\u0E31\u0E19\u0E08\u0E32\u0E01\u0E2B\u0E49\u0E2D\u0E07\u0E02\u0E49\u0E32\u0E07\u0E46
       \u0E17\u0E38\u0E01\u0E04\u0E37\u0E19"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: f1655c13337f73f409a431cecdf453fb, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1
@@ -131,7 +131,7 @@ MonoBehaviour:
     speaker: "\u0E15\u0E49\u0E19"
     text: "\u0E41\u0E15\u0E48\u0E2B\u0E49\u0E2D\u0E07\u0E19\u0E31\u0E49\u0E19...
       \u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E19\u0E2D\u0E22\u0E39\u0E48\u0E21\u0E32\u0E2B\u0E25\u0E32\u0E22\u0E1B\u0E35\u0E41\u0E25\u0E49\u0E27"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: dadbbb0dd0d834c438e1c04a5b3dca02, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1
@@ -146,7 +146,7 @@ MonoBehaviour:
     speaker: "\u0E15\u0E49\u0E19"
     text: "\u0E1C\u0E21\u0E19\u0E2D\u0E19\u0E01\u0E25\u0E32\u0E07\u0E27\u0E31\u0E19\u0E04\u0E23\u0E31\u0E1A...
       \u0E44\u0E27\u0E49\u0E04\u0E38\u0E22\u0E17\u0E35\u0E2B\u0E25\u0E31\u0E07\u0E44\u0E14\u0E49\u0E1B\u0E48\u0E30"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: c7396b2b4f8a7f94d9bb9182c59fbca5, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1
@@ -159,7 +159,7 @@ MonoBehaviour:
       203)"
     speaker: "\u0E15\u0E49\u0E19"
     text: "\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E19\u0E30... \u0E04\u0E37\u0E19\u0E19\u0E35\u0E49\u0E17\u0E32\u0E07\u0E40\u0E14\u0E34\u0E19\u0E21\u0E31\u0E19\u0E41\u0E1B\u0E25\u0E01\u0E46"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 9064192ba18418545a74854a3207b2ab, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1
@@ -244,7 +244,7 @@ MonoBehaviour:
     speaker: "\u0E1B\u0E49\u0E32\u0E1A\u0E38\u0E0D\u0E21\u0E35"
     text: "\u0E1B\u0E49\u0E32\u0E1A\u0E38\u0E0D\u0E21\u0E35 \u0E2B\u0E49\u0E2D\u0E07
       104 \u0E02\u0E32\u0E22\u0E02\u0E2D\u0E07\u0E2D\u0E22\u0E39\u0E48\u0E15\u0E25\u0E32\u0E14\u0E1E\u0E25\u0E39"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 107e9b306f202dd45b356e40cae21474, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1
@@ -258,7 +258,7 @@ MonoBehaviour:
       (\u0E2B\u0E49\u0E2D\u0E07 104)"
     speaker: "\u0E1B\u0E49\u0E32\u0E1A\u0E38\u0E0D\u0E21\u0E35"
     text: "\u0E25\u0E39\u0E01\u0E2A\u0E32\u0E27\u0E1B\u0E49\u0E32\u0E2B\u0E32\u0E22\u0E44\u0E1B\u0E43\u0E19\u0E2B\u0E2D\u0E19\u0E35\u0E49\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E2B\u0E25\u0E32\u0E22\u0E1B\u0E35\u0E01\u0E48\u0E2D\u0E19"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 417b76983ddf7bd4a891d6e58922c057, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1
@@ -273,7 +273,7 @@ MonoBehaviour:
     speaker: "\u0E1B\u0E49\u0E32\u0E1A\u0E38\u0E0D\u0E21\u0E35"
     text: "\u0E1B\u0E49\u0E32\u0E01\u0E25\u0E31\u0E1A\u0E21\u0E32\u0E2D\u0E22\u0E39\u0E48\u0E17\u0E35\u0E48\u0E19\u0E35\u0E48...
       \u0E40\u0E1C\u0E37\u0E48\u0E2D\u0E27\u0E31\u0E19\u0E19\u0E36\u0E07\u0E41\u0E01\u0E08\u0E30\u0E40\u0E14\u0E34\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E21\u0E32"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 3c0ab7c409f7e48408a8d356d77277d6, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1
@@ -287,7 +287,7 @@ MonoBehaviour:
       (\u0E2B\u0E49\u0E2D\u0E07 104)"
     speaker: "\u0E1B\u0E49\u0E32\u0E1A\u0E38\u0E0D\u0E21\u0E35"
     text: "\u0E01\u0E34\u0E19\u0E02\u0E49\u0E32\u0E27\u0E23\u0E36\u0E22\u0E31\u0E07\u0E25\u0E39\u0E01"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: f1fe289afede610418cda9802e13d714, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1
@@ -300,7 +300,7 @@ MonoBehaviour:
       (\u0E2B\u0E49\u0E2D\u0E07 104)"
     speaker: "\u0E1B\u0E49\u0E32\u0E1A\u0E38\u0E0D\u0E21\u0E35"
     text: "\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E19\u0E30... \u0E04\u0E37\u0E19\u0E19\u0E35\u0E49\u0E17\u0E32\u0E07\u0E40\u0E14\u0E34\u0E19\u0E21\u0E31\u0E19\u0E41\u0E1B\u0E25\u0E01\u0E46"
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 136a78f69991411459029b28298c1229, type: 3}
     fakeClip: {fileID: 0}
     volume: 1
     pitch: 1

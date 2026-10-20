@@ -115,7 +115,19 @@ public class StoryDirector : MonoBehaviour
         if (Phase == DayPhase.Day)
         {
             int used = GameState.ActionsUsed;
-            list.Add(("ใช้แอ็กชันวันนี้ " + used + "/" + DormData.ActionsPerDay + " — สัมภาษณ์ผู้เช่า / สำรวจ / ถ่ายรูป", used >= DormData.ActionsPerDay));
+            if (Night == 1) list.Add(("ดูทะเบียนผู้เช่าบนเคาน์เตอร์ล็อบบี้", GameState.Has("read_register")));
+            list.Add(("เคาะประตูห้องผู้เช่า แล้วสัมภาษณ์ (" + used + "/" + DormData.ActionsPerDay + " วันนี้)", used >= DormData.ActionsPerDay));
+            if (used < DormData.ActionsPerDay)
+            {
+                int shown = 0;
+                foreach (var t in DormData.Tenants)
+                {
+                    if (shown >= 3) break;
+                    if (GameState.Interviewed.Contains(t.id) || GameState.Missing.Contains(t.id)) continue;
+                    list.Add(("   ห้อง " + t.room + " · " + t.name + "  (ชั้น " + t.room.Substring(0, 1) + ")", false));
+                    shown++;
+                }
+            }
             list.Add(("(ไม่บังคับ) ดูรูปพี่บิ๊กเหนือหิ้งเทียนในล็อบบี้ +สติ", GameState.Has(StaffPhoto.FlagToday)));
             Hud(header, list);
             if (used >= DormData.ActionsPerDay) StartCoroutine(ToEvening());
@@ -191,7 +203,7 @@ public class StoryDirector : MonoBehaviour
         switch (Phase)
         {
             case DayPhase.Day:
-                if (n == 1) return "วันแรกในฐานะผู้ดูแล 'สุขนิรันดร์ แมนชั่น'\nทำความรู้จักผู้เช่า สำรวจตึก — วันละ 4 แอ็กชัน";
+                if (n == 1) return "วันแรกในฐานะผู้ดูแล 'สุขนิรันดร์ แมนชั่น'\nดูทะเบียนผู้เช่าที่เคาน์เตอร์ แล้วไปเคาะประตูทำความรู้จักทุกคน";
                 if (n == 2) return "วันที่ 2... จำร่องรอยของผู้เช่าแต่ละคนไว้ให้ดี";
                 return "วันสุดท้าย... ถ้ารอดคืนนี้ได้ ทุกอย่างจะจบ";
             case DayPhase.Eve:

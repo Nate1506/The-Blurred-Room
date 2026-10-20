@@ -48,7 +48,7 @@ public class NightVisits : MonoBehaviour
         [Tooltip("ข้อความหลังจบลำดับ")]
         public string afterScriptText = "";
 
-        [Header("ถ้าผู้เล่นเปิดประตู (แบบสคริปต์ที่ไม่ล็อก)")]
+        [Header("ถ้าผู้เล่นเปิดประตู (แบบสคริปต์ที่ไม่ล็อก / หรือของปลอมที่ใส่ภาพจัมป์สแกร์)")]
         [Tooltip("เสียงที่ดังพร้อมจัมป์สแกร์")]
         public AudioClip openedVoice;
         [Range(0f, 1f)] public float openedVoiceVolume = 1f;
@@ -313,6 +313,30 @@ public class NightVisits : MonoBehaviour
     AudioSource scriptVoice;
 
     /// <summary>เปิดประตูให้ (เช่น ฝน): เสียง + พุ่งเข้าหน้ากล้องพร้อมกัน -> ตัดดำ -> ฉากจบพิเศษ</summary>
+    // เปิดประตูให้ของปลอม (รายที่ใส่ภาพจัมป์สแกร์ไว้): ภาพเด้งเต็มจอ -> จอดำ -> ฉากจบ หรือ ตายแล้วเริ่มใหม่
+    IEnumerator ImageReveal(Visit v)
+    {
+        var input = DormFX.Input;
+        if (input) input.LockMovement(this);
+        fake.Hide();
+        if (v.openedVoice) DormFX.Play2D(v.openedVoice, v.openedVoiceVolume);
+        if (GameHUD.Instance) StartCoroutine(GameHUD.Instance.FadeTo(1f, 0.05f));   // ข้างหลังภาพเป็นดำ
+        yield return JumpscareImage.Show(v.jumpscareImage, v.jumpscareSeconds, v.jumpscareFillScreen);
+        CameraDynamics.ClearFocus();
+        if (v.openedEndsGame)
+        {
+            routine = null;
+            GameState.Ended = true;
+            yield return new WaitForSeconds(1.5f);
+            if (GameHUD.Instance) GameHUD.Instance.ShowEnding(v.openedEndingTitle, v.openedEndingBody);
+        }
+        else
+        {
+            if (input) input.UnlockMovement(this);
+            NightDemo.Kill(v.deathText);
+        }
+    }
+
     IEnumerator ScriptedOpened(Visit v, TenantNpc tn, AudioSource src)
     {
         StopCoroutineKnocks();
@@ -393,6 +417,7 @@ public class NightVisits : MonoBehaviour
 
     IEnumerator Reveal(Visit v)
     {
+        if (v.jumpscareImage) { yield return ImageReveal(v); yield break; }   // รายนี้มีภาพจัมป์สแกร์ของตัวเอง
         if (revealMode == RevealMode.Unseen) { yield return Unseen(v); yield break; }
         if (revealMode == RevealMode.Ghost && ghost)
         {

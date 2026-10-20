@@ -115,7 +115,14 @@ public class GameHUD : MonoBehaviour
         {
             if (interactor && interactor.Focus != null)
             {
-                prompts.Add(("E", T(interactor.Focus.Prompt), false));
+                string pr = interactor.Focus.Prompt;
+                // ประตูห้องที่ล็อก + มีระบบเคาะ = แสดง "เคาะประตูห้อง xxx" แทน "Open"
+                if (interactor.Focus is Door kd && kd.IsLocked && !kd.IsOpen)
+                {
+                    var rk = kd.GetComponent<RoomKnock>();
+                    if (rk) pr = rk.Prompt;
+                }
+                prompts.Add(("E", T(pr), false));
                 if (interactor.Focus is Door d && d.HasPeephole && !d.IsOpen) prompts.Add(("Q", "ค้าง · ส่องตาแมว", true));
             }
             if (pickup && pickup.Focus != null && !(interactor && interactor.Focus is EasyPickup)) prompts.Add(("F", "เก็บ " + pickup.Focus.DisplayName, false));
@@ -146,8 +153,14 @@ public class GameHUD : MonoBehaviour
     }
 
     // ---------------- API for story scripts ----------------
+    /// <summary>เป้าหมายปัจจุบันเป็นข้อความ (หน้าวิธีเล่นใช้)</summary>
+    public string CurrentObjectivesText { get; private set; } = "";
+
     public void SetObjectives(string header, IList<(string text, bool done)> list)
     {
+        var sbObj = new System.Text.StringBuilder();
+        foreach (var o in list) sbObj.Append(o.done ? "(เสร็จ) " : "- ").Append(o.text).Append('\n');
+        CurrentObjectivesText = sbObj.ToString();
         // หัว: "วันที่ 1/3 · กลางวัน      ผู้เช่าหาย 0/6" -> 2 บรรทัด
         int cut = header.IndexOf("      ");
         string h = cut > 0
