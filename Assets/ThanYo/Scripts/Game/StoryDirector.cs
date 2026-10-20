@@ -175,6 +175,8 @@ public class StoryDirector : MonoBehaviour
     IEnumerator IntroIfNeeded()
     {
         yield return new WaitForSeconds(1.2f);
+        while (OpeningCutscene.Playing) yield return null;   // รอคัตซีนเปิดเกมจบก่อน
+        if (!inside && OpeningCutscene.ShowedTitle) yield break;   // คัตซีนขึ้นชื่อหอไปแล้ว
         if (nightDemo && Phase == DayPhase.Night) yield break;
         string key = "intro_n" + Night + "_" + Phase;
         if (GameState.Has(key) || GameState.Ended) yield break;

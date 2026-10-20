@@ -277,6 +277,8 @@ public static class NightDemoBuilder
         if (story) story.SetActive(true);   // ลานหน้าหอใช้ระบบเวลา/เควสเดิม
         var amb = New<AmbientLoop>(root, "Ambience", Vector3.zero);
         amb.clip = Clip("Music/universfield-dark-horror-soundscape-345814.mp3"); amb.volume = amb.clip ? 0.25f : 0f;
+        var birds = New<OutdoorAmbience>(root, "Outdoor_Birds", Vector3.zero);
+        birds.clip = Clip("dany_photo-forestbirds-319791.mp3");
         New<AudioHooks>(root, "AudioHooks", Vector3.zero);
         var cam = GameObject.Find("Player")?.GetComponentInChildren<Camera>();
         if (cam && !cam.GetComponent<Camcorder>()) { var c = cam.gameObject.AddComponent<Camcorder>(); c.owned = false; }
