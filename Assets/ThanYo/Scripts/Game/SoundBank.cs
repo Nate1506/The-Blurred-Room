@@ -39,6 +39,8 @@ public class SoundBank : ScriptableObject
     [Tooltip("เสียงตอนจัมป์สแกร์ (ภาพเด้งเต็มจอ)")]
     public AudioClip jumpscare;
     [Range(0f, 1f)] public float jumpscareVolume = 1f;
+    [Tooltip("ภาพจัมป์สแกร์ทั่วไป (เปิดประตูให้ของปลอม / เหตุการณ์ผิดปกติ) ว่าง = ใช้หน้าผีแดงเดิม")]
+    public Sprite jumpscareImage;
 
     [Header("เมนู")]
     public AudioClip menuMusic;

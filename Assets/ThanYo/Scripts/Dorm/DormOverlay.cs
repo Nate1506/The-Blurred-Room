@@ -173,7 +173,8 @@ public class DormOverlay : MonoBehaviour
     {
         if (scareOn) yield break;
         scareOn = true;
-        scareImage.sprite = DormFX.Creature;
+        var bank = SoundBank.I;
+        scareImage.sprite = bank && bank.jumpscareImage ? bank.jumpscareImage : DormFX.Creature;   // ตั้งภาพได้ที่ SoundBank
         scareImage.color = scareImage.sprite ? Color.white : new Color(0.15f, 0, 0);
         scareRoot.SetActive(true);
         if (SoundBank.I) DormFX.Play2D(SoundBank.I.jumpscare, SoundBank.I.jumpscareVolume);
